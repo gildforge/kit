@@ -1,0 +1,68 @@
+/* gild's colour tokens, shared by gild.gg and gild desktop. Light by default;
+   [data-theme='dark'] (ui/theme ThemeScript) switches the set. */
+:root {
+  color-scheme: light;
+  --bg: #fafaf8;
+  --bg-soft: #f3f2ee;
+  --surface: #ffffff;
+  --ink: #17181b;
+  --ink-soft: #4a4d55;
+  --ink-dim: #62656c;
+  --ink-faint: #71747a;
+  --rule: #dedbd4;
+  --rule-soft: #e6e4de;
+  --accent: #9a6b0c;
+  --accent-hover: #7a5408;
+  --accent-ink: #fafaf8;
+  --panel: #f3f2ee;
+  --glow: rgba(154, 107, 12, 0.08);
+  --lane-1: #9a6b0c;
+  --lane-2: #2f6fd6;
+  --lane-3: #8a4fc4;
+  --lane-4: #17181b;
+  --ok: #2e8a3a;
+  --bad: #c2463b;
+  /* Glance's heat colour: Cloudflare orange, in both themes. */
+  --heat-hot: #f38020;
+  --heat-ink: #17181b;
+  /* Hover cards stand apart from what they sit on: medium grey in light mode. */
+  --tip-bg: #6b6d73;
+  --tip-ink: #ffffff;
+  --tip-dim: #e4e5e8;
+  --tip-add: #c8f7c1;
+  --tip-del: #ffd3cd;
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --bg-soft: #101114;
+  --surface: #14161a;
+  --ink: #eceae4;
+  --ink-soft: #b9b6ae;
+  --ink-dim: #9a978f;
+  --ink-faint: #8c897f;
+  --rule: #23252a;
+  --rule-soft: #1c1e22;
+  --accent: #e2b54a;
+  --accent-hover: #f3cf76;
+  --accent-ink: #0b0c0e;
+  --panel: #111316;
+  --glow: rgba(226, 181, 74, 0.10);
+  --lane-1: #e2b54a;
+  --lane-2: #6fa8ff;
+  --lane-3: #c792ea;
+  --lane-4: #eceae4;
+  --ok: #7fc77a;
+  --bad: #e5736a;
+  --heat-hot: #f38020;
+  --heat-ink: #0b0c0e;
+  /* … and black in dark mode. */
+  --tip-bg: #000000;
+  --tip-ink: #eceae4;
+  --tip-dim: #9a978f;
+  --tip-add: #7fc77a;
+  --tip-del: #e5736a;
+}

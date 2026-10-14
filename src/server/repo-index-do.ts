@@ -1181,7 +1181,10 @@ export class RepoIndex extends DurableObject<Env> {
     // Capture immutable metadata bytes synchronously before any staging awaits.
     const rows=meta?this.index.rows<{path:string;json:string}>('SELECT path,json FROM meta_files WHERE tip=? ORDER BY path',meta):[]
     const files=new Map(rows.map(r=>[r.path,r.json])),rawIndex=files.get('.gild/index.json')
-    if(meta&&!rawIndex)return
+    // A tip whose files are not loaded yet cannot certify empty; a loaded tip
+    // without an index (a new repository's _meta holds only its ACL) has no
+    // issues or pulls yet.
+    if(meta&&!rawIndex&&!rows.length)return
     const summary=rawIndex?JSON.parse(rawIndex) as import('./metastore.js').MetaIndex:{issues:[],pulls:[]}
     const threads:ConversationThread[]=[],comments:ConversationComment[]=[],reviews:ConversationReview[]=[]
     for(const [kind,items] of [['issue',summary.issues],['pr',summary.pulls]] as const){

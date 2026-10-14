@@ -284,14 +284,17 @@ async function workerToken(cf: Cloudflare, accountId: string, name: string): Pro
 
 /** A new workers.dev name takes a little while to resolve. */
 async function ready(url: string, token: string, fetch: Fetch) {
-  const deadline = Date.now() + 120_000
-  let last = ''
+  // A new name answers from some edges before others: wait for it to answer
+  // three times running before handing it over.
+  const deadline = Date.now() + 180_000
+  let last = '', streak = 0
   while (Date.now() < deadline) {
     try {
       const res = await fetch(`${url}/api/v1/user/account`, { headers: { authorization: `Bearer ${token}` } })
-      if (res.ok) return
-      last = `HTTP ${res.status}`
+      if (res.ok && ++streak >= 3) return
+      if (!res.ok) { streak = 0; last = `HTTP ${res.status}` }
     } catch (error) {
+      streak = 0
       last = String(error)
     }
     await new Promise(resolve => setTimeout(resolve, 2000))

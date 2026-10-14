@@ -32,6 +32,7 @@ export function FooterView({ theme, Link = Anchor }: { theme: ReactNode; Link?: 
         <img className="site-mark" src="/logo.svg" alt="" width={26} height={26} />gild
       </Link>
       <span style={{ display: 'flex', alignItems: 'center', gap: 14, justifySelf: 'end' }}>
+        <Link href="/download">download</Link>
         <a href="https://github.com/orgs/gildforge/repositories">github</a>
         <a href="/brand">brand</a>
         <a href="https://github.com/sponsors/samifouad">donate</a>
@@ -39,6 +40,14 @@ export function FooterView({ theme, Link = Anchor }: { theme: ReactNode; Link?: 
       </span>
     </div>
   </footer>
+}
+
+/** What the search button shows: the prompt and its key on wide screens, a magnifying glass on a phone (CSS picks). */
+export function SearchTriggerContent() {
+  return <>
+    <svg className="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+    <span>Type / to search</span><kbd>/</kbd>
+  </>
 }
 
 export function IdentityView({ name, picture, Link = Anchor }: { name: string; picture?: ReactNode; Link?: LinkView }) {

@@ -1,7 +1,7 @@
 import assets from 'gild:asset-manifest'
 import tabStyles from 'gild:tab-styles'
 import type { HomeData } from '../engine/fragments.js'
-import { SiteHeaderView, FooterView, PortalBarView, SignInView, RepoHeaderView, RepoTabsView, repoTabs, StarView, CloneView } from '../presentation/Headers.js'
+import { SiteHeaderView, FooterView, SearchTriggerContent, PortalBarView, SignInView, RepoHeaderView, RepoTabsView, repoTabs, StarView, CloneView } from '../presentation/Headers.js'
 import { Sidebar } from './Sidebar.js'
 import { RepoIsland } from './RepoIsland.js'
 import s from './styles/repo.module.css'
@@ -44,13 +44,13 @@ export function Shell({ version }: { version: string }) {
         <link rel="modulepreload" href={assets.urls['tab-client.js']} />
       </head>
       <body>
-        <SiteHeaderView search={<button className="search-trigger" data-search="" aria-label="Search code"><span>Type / to search</span><kbd>/</kbd></button>} identity={<SignInView />} />
+        <SiteHeaderView search={<button className="search-trigger" data-search="" aria-label="Search code"><SearchTriggerContent /></button>} identity={<SignInView />} />
         <main style={{ padding: '0 24px 24px', minWidth: 0 }}>
           <template data-portal-template="">
             <RepoIsland kind="sidebar" props={{ identity: null }}>
               <Sidebar identity={{name:''}} onSignOut={() => {}} />
             </RepoIsland>
-            <PortalBarView search={<button className="search-trigger" data-search="" aria-label="Search code"><span>Type / to search</span><kbd>/</kbd></button>} />
+            <PortalBarView search={<button className="search-trigger" data-search="" aria-label="Search code"><SearchTriggerContent /></button>} />
           </template>
           <div
             data-fragment-root=""

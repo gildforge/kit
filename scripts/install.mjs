@@ -2,7 +2,8 @@
 // Install (or upgrade) gild into a Cloudflare account from a terminal, the
 // same steps gild desktop runs:
 //   CLOUDFLARE_API_TOKEN=… node scripts/install.mjs <account-id> <owner> <email> [name]
-// The owner key is ~/.ssh/id_ed25519.pub. Prints the instance URL; the owner
+// The owner key is your gild identity (~/.config/gild/identity.json, made by
+// `gild auth init`). Prints the instance URL; the owner
 // token goes to the file named by GILD_TOKEN_FILE (default: not saved).
 import { readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -18,7 +19,7 @@ const root = new URL('../template/', import.meta.url)
 const manifest = JSON.parse(readFileSync(new URL('worker/manifest.json', root), 'utf8'))
 const result = await install({
   token, accountId, name,
-  owner: { name: ownerName, email, publicKey: readFileSync(`${homedir()}/.ssh/id_ed25519.pub`, 'utf8') },
+  owner: { name: ownerName, email, publicKey: JSON.parse(readFileSync(`${homedir()}/.config/gild/identity.json`, 'utf8')).publicKey },
   template: { manifest, read: async path => readFileSync(new URL(path, root)) },
   fetch,
   onProgress: p => console.log(`${p.state === 'done' ? '✓' : '…'} ${p.step}${p.detail ? `: ${p.detail}` : ''}`),

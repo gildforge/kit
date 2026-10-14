@@ -79,7 +79,7 @@ function account() {
 
 const manifest = JSON.parse(readFileSync(new URL('../../template/worker/manifest.json', import.meta.url), 'utf8'))
 const template = { manifest, read: async (path: string) => path.endsWith('.sql') ? 'CREATE TABLE x(a);' : new Uint8Array([0]) }
-const owner = { name: 'acme', email: 'a@acme.dev', publicKey: 'ssh-ed25519 AAAAC3Nza acme@laptop' }
+const owner = { name: 'acme', email: 'a@acme.dev', publicKey: 'ed25519:MCowBQYDK2VwAyEAhnnLeZvw/b4JgNXkKcgL2P8dsq7ma7Ir5tEcIy44B0Q=' }
 
 test('a first install creates everything once and a second only upgrades', async () => {
   const cf = account()
@@ -130,7 +130,7 @@ test('an install names every resource after its Worker', async () => {
 test('a name another key owns is refused', async () => {
   const cf = account()
   await install({ token: 't', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch })
-  await assert.rejects(install({ token: 't', accountId: 'acct', owner: { ...owner, publicKey: 'ssh-ed25519 BBBB other' }, template, fetch: cf.fetch as typeof fetch }), /different key/)
+  await assert.rejects(install({ token: 't', accountId: 'acct', owner: { ...owner, publicKey: 'ed25519:MCowBQYDK2VwAyEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' }, template, fetch: cf.fetch as typeof fetch }), /different key/)
 })
 
 test('an account with another deployment\'s resources is refused before anything is made', async () => {

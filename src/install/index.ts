@@ -39,7 +39,8 @@ export interface Owner {
   /** The owner's gild name, e.g. "sami". */
   name: string
   email: string
-  /** OpenSSH public key line ("ssh-ed25519 AAAA…"); signs git and CLI sign-in. */
+  /** The gild identity key, `ed25519:<base64 SPKI>` as `gild auth status`
+   *  prints it (~/.config/gild/identity.json): the CLI signs in with it. */
   publicKey: string
 }
 
@@ -107,8 +108,8 @@ export async function install(options: InstallOptions): Promise<Installed> {
   const a = `/accounts/${options.accountId}`
   const progress = (step: StepId, state: Progress['state'], detail?: string) => options.onProgress?.({ step, state, detail })
   if (!/^[a-z0-9][a-z0-9-]{0,38}$/.test(owner.name)) throw new Error('The owner name must be lowercase letters, digits and dashes')
-  if (!/^ssh-ed25519 [A-Za-z0-9+/=]+/.test(owner.publicKey)) throw new Error('The owner key must be an ssh-ed25519 public key')
-  const publicKey = owner.publicKey.trim().split(/\s+/).slice(0, 2).join(' ')
+  const publicKey = owner.publicKey.trim()
+  if (!/^ed25519:[A-Za-z0-9+/]{59}=$/.test(publicKey)) throw new Error('The owner key must be a gild identity key (ed25519:…), as `gild auth status` prints it')
 
   progress('account', 'running')
   const account = await cf.get<{ id: string; name: string }>(a)

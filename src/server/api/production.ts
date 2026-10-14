@@ -1,4 +1,6 @@
 import {PreparedConversations} from '../prepared-conversations.js'
+import {PreparationPending} from '../prepared-read-models.js'
+import {repoIndex} from '../repo-index.js'
 import {PreparedRepositoryContent} from '../prepared-repository-content.js'
 import type {D1Database} from '@cloudflare/workers-types'
 import {PreparedReadModels} from '../prepared-read-models.js'
@@ -82,7 +84,7 @@ export async function dependencies(): Promise<Dependencies> {
       const { searchCode, readablePrivate } = await import('../search-index.js')
       return searchCode(searchDB, { ...input, readable: await readablePrivate(db, viewer) })
     } } : {}),
-    readModels,contentReads:new PreparedRepositoryContent(db,readModels),conversationReads:new PreparedConversations(db,readModels),
+    readModels,contentReads:new PreparedRepositoryContent(db,readModels),conversationReads:pendingNudges(new PreparedConversations(db,readModels)),
     packageWrite:writePackageManifest,
     channel: channelHandler({store:st,index:readyIndex},async ()=>(await getCloudflareContext()).env as never),
     orchestrators: orchestratorHandler({store:st,index:readyIndex},{
@@ -270,4 +272,23 @@ export async function api(request: Request) {
         : 'API storage is temporarily unavailable',
     )
   }
+}
+
+/** A pulls or issues read that finds nothing prepared asks the repository's
+ *  index to prepare it (rate-limited there), and still answers 503 now. */
+function pendingNudges(reads: PreparedConversations): PreparedConversations {
+  const read = reads.read.bind(reads)
+  reads.read = (async (c: Parameters<PreparedConversations['read']>[0]) => {
+    try { return await read(c) } catch (error) {
+      const { owner, repo } = c.params
+      if (error instanceof PreparationPending && owner && repo) {
+        try {
+          const ctx = await getCloudflareContext()
+          ctx.ctx.waitUntil(repoIndex(owner, repo).then(index => index?.conversationsPending(owner, repo)).catch(() => {}))
+        } catch { /* no Worker context: nothing to wake */ }
+      }
+      throw error
+    }
+  }) as PreparedConversations['read']
+  return reads
 }

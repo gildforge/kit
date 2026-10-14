@@ -345,6 +345,16 @@ export class RepoIndex extends DurableObject<Env> {
         await this.wake(Date.now() + 250)
     }
   }
+  /** A pulls or issues read found nothing prepared. Repositories untouched
+   *  since conversation reads began were never prepared, because the producer
+   *  runs after an index pass; run one, at most every five minutes. */
+  async conversationsPending(owner: string, repo: string) {
+    const last = Number(this.index.setting('conversations:nudged') ?? 0)
+    if (Date.now() - last < 5 * 60_000) return
+    this.index.setting('conversations:nudged', String(Date.now()))
+    if (!this.index.setting('owner')) return this.refresh(owner, repo)
+    await this.wake(Date.now() + 1)
+  }
   async refresh(owner: string, repo: string, target?: Target) {
     this.resetWaits()
     this.index.setting('owner', owner)
@@ -1897,10 +1907,16 @@ export class RepoIndex extends DurableObject<Env> {
       // Search first: it is cheap when nothing changed, and the content reads
       // below may wake the object again before returning.
       try { await this.prepareSearch() } catch (error) { console.error('Search sync failed', error) }
-      await this.prepareContentReads()
-      await this.preparePageChanges()
-      await this.renderWork()
+      // Conversation reads depend on none of these: a failing content, diff or
+      // render step must not leave pulls and issues unprepared forever.
+      let failed: unknown
+      try {
+        await this.prepareContentReads()
+        await this.preparePageChanges()
+        await this.renderWork()
+      } catch (error) { failed = error }
       await this.prepareConversationReads()
+      if (failed) throw failed
       await this.eventWork()
       // Recovery of legacy persisted queues is background-only, after metadata
       // is authoritative; ordinary page reads never initiate a drain.

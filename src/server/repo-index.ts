@@ -32,6 +32,7 @@ export type RepoIndexRPC = {
       | 'view'
       | 'hydrate'
       | 'refresh'
+      | 'conversationsPending'
       | 'status'
       | 'refs'
       | 'tree'

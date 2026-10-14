@@ -18,6 +18,7 @@ import { ApiError, requireFound } from '../engine/api/errors.js'
 import { grantScopes, hasScope, type Principal, type Scope } from '../engine/api/scopes.js'
 import { channelFrom, type ChannelBindings } from './channel/binding.js'
 import type { ChildAgent } from '../engine/api/orchestrator-contract.js'
+import { grantList, type Grant } from './access.js'
 
 export const DEFAULT_CHILD_LIMIT = 10
 type Store = Pick<ForgeStore, 'settings' | 'getAgent' | 'orgRole' | 'getOrg' | 'revokeAgent' | 'grantOrchestrator' | 'revokeOrchestrator' | 'orchestratorGrants' | 'orchestratorsIn' | 'createChildAgent' | 'childrenOf' | 'setSuspended'>
@@ -82,6 +83,15 @@ export async function revokeGrant(st: Store, agent: string, scope: string) {
   return revoked
 }
 
+/** Keep the repo's orchestrator record in step with the agent's coordinate grant. */
+export async function syncCoordinate(st: Pick<ForgeStore, 'settings' | 'orchestratorGrants' | 'grantOrchestrator' | 'revokeOrchestrator' | 'childrenOf' | 'revokeAgent'>, owner: string, repo: string, agent: string, coordinate: boolean, by: string) {
+  if (!agent.includes('/')) return
+  const { repoScope } = await coveringScopes(st, owner, repo)
+  const held = (await st.orchestratorGrants(agent)).some((g) => g.scope === repoScope)
+  if (coordinate && !held) await st.grantOrchestrator({ agent, scope: repoScope, childLimit: DEFAULT_CHILD_LIMIT, grantedBy: by })
+  else if (!coordinate && held) await revokeGrant(st as Store, agent, repoScope)
+}
+
 /** Repo owner, or an owner/admin of the owning org. Agents never are. */
 async function repoAdmin(st: Pick<ForgeStore, 'orgRole'>, owner: string, name: string) {
   if (!name || name.includes('/')) return false
@@ -110,13 +120,13 @@ export interface OrchestratorDeps {
   bindings(): Promise<ChannelBindings>
   createToken(name: string, key: string, options: { scopes: string[]; repos?: string[]; label: string }): Promise<string>
   /** Attach the agent to the repo's acl (an empty grant list still attaches). */
-  attach(owner: string, repo: string, by: string, agent: string, grants: ('pr' | 'review' | 'queue')[]): Promise<unknown>
+  attach(owner: string, repo: string, by: string, agent: string, grants: Grant[]): Promise<unknown>
 }
 
 export function orchestratorHandler(s: ReadServices & { store: ForgeStore }, deps: OrchestratorDeps) {
   const st = s.store
   const aclGrants = async (owner: string, repo: string, agent: string) =>
-    (((await repoAccess(s, owner, repo))?.acl as { agents?: Record<string, string[]> } | undefined)?.agents?.[`@${agent}`] ?? []) as ('pr' | 'review' | 'queue')[]
+    grantList(((await repoAccess(s, owner, repo))?.acl as { agents?: Record<string, string[]> } | undefined)?.agents?.[`@${agent}`])
   const childView = async (owner: string, repo: string, a: Agent): Promise<ChildAgent> => ({
     name: a.name,
     label: a.label,
@@ -191,18 +201,20 @@ export function orchestratorHandler(s: ReadServices & { store: ForgeStore }, dep
       throw new ApiError(403, 'Requires agents scope')
 
     if (id === 'childAgents') {
-      if (!grant && !admin) throw new ApiError(403, 'Requires the orchestrator grant on this repository')
+      if (!grant && !admin) throw new ApiError(403, 'Requires the coordinate grant on this repository')
       const parents = grant ? [name] : (await st.orchestratorsIn([repoScope, orgScope])).map((g) => g.agent)
       const children = (await Promise.all([...new Set(parents)].map((o) => st.childrenOf(o)))).flat().filter((a) => a.childRepo === repoId)
       return { data: await Promise.all(children.map((a) => childView(owner, repo, a))), noStore: true }
     }
 
     if (id === 'createChildAgent') {
-      if (!name.includes('/')) throw new ApiError(403, 'Only an orchestrator agent spawns children; people approve join requests')
-      if (!grant) throw new ApiError(403, 'Requires the orchestrator grant on this repository')
+      if (!name.includes('/')) throw new ApiError(403, 'Agents with the coordinate grant launch agents; people approve join requests')
+      if (!grant) throw new ApiError(403, 'Requires the coordinate grant on this repository')
       const orchestrator = requireFound(await st.getAgent(name), 'Agent not found')
       const own = await aclGrants(owner, repo, name)
-      const extra = c.body.grants.filter((g: string) => !own.includes(g as never))
+      c.body.grants = grantList(c.body.grants)
+      if (c.body.grants.includes('coordinate')) throw new ApiError(403, 'Only a person grants coordinate')
+      const extra = c.body.grants.filter((g: Grant) => !own.includes(g))
       if (extra.length) throw new ApiError(403, `@${name} doesn't hold ${extra.join(', ')} in ${owner}/${repo}, so it can't grant it`)
       const scopes = childScopes(c.body.grants)
       const wider = scopes.filter((scope) => !covers(c.principal, scope))
@@ -222,9 +234,9 @@ export function orchestratorHandler(s: ReadServices & { store: ForgeStore }, dep
         childLimit: grant.childLimit,
       })
       if (created === 'taken') throw new ApiError(409, `@${orchestrator.sponsor}/${c.body.label} already exists; pick another label`)
-      if (created === 'limit') throw new ApiError(403, `@${name} already holds its limit of ${grant.childLimit} children`)
+      if (created === 'limit') throw new ApiError(403, `@${name} has launched its limit of ${grant.childLimit} agents`)
       await deps.attach(owner, repo, name, created.name, c.body.grants)
-      const token = await deps.createToken(created.name, c.body.publicKey, { scopes, repos: [`${owner}/${repo}`], label: `child of @${name}` })
+      const token = await deps.createToken(created.name, c.body.publicKey, { scopes, repos: [`${owner}/${repo}`], label: `launched by @${name}` })
       return {
         data: { ...(await childView(owner, repo, created)), grants: c.body.grants, scopes, token, request_id: requestId },
         status: 201,
@@ -237,7 +249,7 @@ export function orchestratorHandler(s: ReadServices & { store: ForgeStore }, dep
     const allowed = name.includes('/')
       ? !!grant && agent.name !== name && (await sponsors(st, name, agent))
       : agent.sponsor === name || (admin && (agent.childRepo === repoId || (await grantIn(st, agent.name, owner, repo)) !== null))
-    if (!allowed) throw new ApiError(403, name.includes('/') ? 'Orchestrators suspend only the agents they spawned' : 'Repository owner or admin required')
+    if (!allowed) throw new ApiError(403, name.includes('/') ? 'Agents with the coordinate grant take offline only the agents they launched' : 'Repository owner or admin required')
     const suspend = id === 'suspendAgent'
     if (!(await st.setSuspended(agent.name, suspend ? name : null)))
       throw new ApiError(409, `@${agent.name} is ${suspend ? 'already suspended' : 'not suspended'}`)

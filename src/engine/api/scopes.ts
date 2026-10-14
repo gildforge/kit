@@ -38,7 +38,7 @@ export function grantScopes(grants: readonly string[]): Scope[] {
     ...(grants.includes('pr')
       ? (['repo:write', 'issues:write', 'pulls:write'] as const)
       : []),
-    ...(grants.includes('review') || grants.includes('queue')
+    ...(grants.includes('review') || grants.includes('merge') || grants.includes('queue')
       ? (['pulls:write'] as const)
       : []),
   ]

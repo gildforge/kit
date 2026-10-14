@@ -8,7 +8,7 @@ export async function GET(request:Request,ctx:Ctx) {return legacy(request,'pull'
 
 /** { action: "close" | "reopen" | "queue" | "dequeue" }
  *  Close/reopen: the author or a writer. Queue/dequeue: writers and agents
- *  granted `queue`. Queueing
+ *  granted `merge`. Queueing
  *  records a durable queue intent and schedules work after the response. */
 export async function POST(request: Request, ctx: Ctx) {
   const { owner, repo, number } = await ctx.params
@@ -26,7 +26,7 @@ export async function POST(request: Request, ctx: Ctx) {
       if (!writer && found.pull.author !== name) return Response.json({ error: `you can't ${action} this pull request` }, { status: 403 })
       await setPullState(owner, repo, n, name, action === 'close' ? 'closed' : 'open')
     } else if (action === 'queue' || action === 'dequeue') {
-      if (!can.grants.has('queue')) return Response.json({ error: 'the merge queue needs write access, or the queue grant for agents' }, { status: 403 })
+      if (!can.grants.has('merge')) return Response.json({ error: 'the merge queue needs write access, or the merge grant for agents' }, { status: 403 })
       if (action === 'queue') {
         await enqueueAndDrain(owner, repo, n, name)
       } else {

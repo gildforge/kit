@@ -6,8 +6,8 @@ import { cache } from 'react'
 import { memo } from './kept.js'
 import { ApiError } from '../engine/api/errors.js'
 
-const ACCOUNT = '08b93c93f8b7adc43678e9afba31e4ee'
-const BASE = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/artifacts`
+import { artifactsApi, artifactsGit } from './account.js'
+const base = () => `${artifactsApi()}/artifacts`
 
 /** Per-owner namespaces: repo <name> of user <owner> lives in u-<owner>,
  *  of org <owner> in o-<owner>. The kind comes from the store, so a name
@@ -42,7 +42,7 @@ async function call<T>(
   body?: unknown,
   credential?: string,
 ): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${base()}${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${credential ?? (await token())}`,
@@ -142,7 +142,7 @@ async function visibleRepos(owner: string, repos: RepoInfo[], listing = false) {
   return rows.filter((r) => r !== null)
 }
 export const rawRemote = (ns: string, repo: string) =>
-  `https://${ACCOUNT}.artifacts.cloudflare.net/git/${ns}/${repo}.git`
+  `${artifactsGit()}/${ns}/${repo}.git`
 export const rawToken = (ns: string, repo: string, scope: 'read' | 'write', credential?: string) =>
   call<{ plaintext: string }>(`/namespaces/${ns}/tokens`, 'POST', {
     repo,
@@ -190,7 +190,7 @@ export async function repoFile(
   ref = 'main',
 ): Promise<string | null> {
   const res = await fetch(
-    `${BASE}/namespaces/${await nsForOwner(owner)}/repos/${repo}/file?ref=${ref}&path=${encodeURIComponent(path)}`,
+    `${base()}/namespaces/${await nsForOwner(owner)}/repos/${repo}/file?ref=${ref}&path=${encodeURIComponent(path)}`,
     {
       headers: { Authorization: `Bearer ${await token()}` },
     },
@@ -252,7 +252,7 @@ export async function repoBlob(
   hash: string,
 ): Promise<Uint8Array> {
   const res = await fetch(
-    `${BASE}/namespaces/${await nsForOwner(owner)}/repos/${repo}/blob/${hash}`,
+    `${base()}/namespaces/${await nsForOwner(owner)}/repos/${repo}/blob/${hash}`,
     {
       headers: { Authorization: `Bearer ${await token()}` },
     },
@@ -286,4 +286,4 @@ export const readToken = (owner: string, repo: string) =>
   )
 
 export const repoRemote = async (owner: string, repo: string) =>
-  `https://${ACCOUNT}.artifacts.cloudflare.net/git/${await nsForOwner(owner)}/${repo}.git`
+  `${artifactsGit()}/${await nsForOwner(owner)}/${repo}.git`

@@ -13,10 +13,10 @@
  *  at gild's git proxy; these counts are what Artifacts itself recorded. */
 import type { D1Database } from '@cloudflare/workers-types'
 import { metering } from './hosted.js'
+import { artifactsApi, type AccountEnv } from './account.js'
 import type { UsageKind } from './hosted.js'
 
 export const ARTIFACTS_EVENTS_QUEUE = 'gild-artifacts-events'
-const ACCOUNT = '08b93c93f8b7adc43678e9afba31e4ee'
 export const REPO_EVENTS = ['pushed', 'cloned', 'fetched'] as const
 
 export interface ArtifactsEvent {
@@ -25,7 +25,7 @@ export interface ArtifactsEvent {
   payload?: { namespace?: string; repoName?: string; ref?: string; before?: string; after?: string }
   metadata?: { eventTimestamp?: string }
 }
-export interface EventBindings {
+export interface EventBindings extends AccountEnv {
   DB: D1Database
   /** Queues Write only: creates and deletes event subscriptions. */
   EVENTS_TOKEN?: string
@@ -47,7 +47,7 @@ const kindOf = (type: string) => type.replace(/^cf\.artifacts\.repo\./, '').repl
 
 async function subscriptions(env: EventBindings, method: string, path = '', body?: unknown) {
   if (!env.EVENTS_TOKEN || !env.ARTIFACTS_EVENTS_QUEUE_ID) throw new Error('Event subscriptions are not configured')
-  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/event_subscriptions/subscriptions${path}`, {
+  const res = await fetch(`${artifactsApi(env)}/event_subscriptions/subscriptions${path}`, {
     method, headers: { authorization: `Bearer ${env.EVENTS_TOKEN}`, 'content-type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
   })

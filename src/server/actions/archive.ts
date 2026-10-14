@@ -3,11 +3,11 @@ import http from 'isomorphic-git/http/web'
 import type { D1Database } from '@cloudflare/workers-types'
 import { d1Store } from '../drivers/d1.js'
 import { MemFS } from '../../engine/memfs.js'
-interface Env {
+import { artifactsApi, artifactsGit, type AccountEnv } from '../account.js'
+interface Env extends AccountEnv {
   DB: D1Database
   ARTIFACTS_TOKEN?: string
 }
-const ACCOUNT = '08b93c93f8b7adc43678e9afba31e4ee'
 /** Explicit bindings, so DO alarms never depend on Next's request context. */
 export async function archiveConnection(
   env: Env,
@@ -19,7 +19,7 @@ export async function archiveConnection(
     throw new Error('Needs Sami: ARTIFACTS_TOKEN on gild-site/Worker')
   const namespace = `${(await d1Store(env.DB).getOrg(owner)) ? 'o' : 'u'}-${owner.toLowerCase()}`
   const r = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/artifacts/namespaces/${namespace}/tokens`,
+    `${artifactsApi(env)}/artifacts/namespaces/${namespace}/tokens`,
     {
       method: 'POST',
       headers: {
@@ -36,7 +36,7 @@ export async function archiveConnection(
   if (!r.ok || !body.success)
     throw new Error('actions archive could not obtain repo write access')
   const token = body.result.plaintext.split('?')[0],
-    url = `https://${ACCOUNT}.artifacts.cloudflare.net/git/${namespace}/${repo}.git`
+    url = `${artifactsGit(env)}/${namespace}/${repo}.git`
   return { token, url }
 }
 export async function writeRunRecord(

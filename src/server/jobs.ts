@@ -65,13 +65,14 @@ export async function scheduledJobs(event: { scheduledTime?: number }, env: Arti
 
 /** Answer a queue batch gild owns; false when the batch belongs to the host. */
 export async function queueJobs(batch: MessageBatch<unknown>, env: ArtifactsEnv & EventBindings): Promise<boolean> {
-  if (batch.queue === ARTIFACTS_EVENTS_QUEUE) {
+  // An install names its queues <worker>-…; gild.gg's are gild-….
+  if (batch.queue.endsWith(ARTIFACTS_EVENTS_QUEUE.slice('gild'.length))) {
     const events = batch.messages.map(m => (typeof m.body === 'string' ? JSON.parse(m.body) : m.body) as ArtifactsEvent)
     const result = await handleArtifactsEvents(events, env as never, artifactsEffects(env))
     if (result.refreshed || result.subscribed || result.unsubscribed) console.log('Artifacts events', JSON.stringify(result))
     return true
   }
-  if (batch.queue === 'gild-public-pages') return false
+  if (batch.queue.endsWith('-public-pages')) return false
   await consumeWebhooks(batch as MessageBatch<{ delivery: string }>, env as unknown as EventBindings & EventEnv)
   return true
 }

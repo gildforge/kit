@@ -5,7 +5,7 @@ export async function consumeWebhooks(batch: MessageBatch<DeliveryMessage>, env:
   const hub = hubFrom(env)
   await Promise.all(batch.messages.map(async message => {
     try {
-      if (batch.queue === 'gild-webhooks-dead') {
+      if (batch.queue.endsWith('-webhooks-dead')) {
         await hub.deadLetter(message.body.delivery)
         message.ack()
         return

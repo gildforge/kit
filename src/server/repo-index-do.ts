@@ -67,17 +67,18 @@ import {
 } from '../render/language.js'
 import { profileView } from './profile-view.js'
 import { digest, fragmentKey, RENDER_VERSION, type Fragment } from '../render/address.js'
+import { artifactsApi, artifactsGit } from './account.js'
 
 interface Env extends EventBindings, ChannelBindings {
   RUN_QUEUE?: { idFromName(name:string):unknown; get(id:unknown):{init(owner:string,repo:string):Promise<void>;requestMergeScan():Promise<void>} }
   CQX_HEAVY?: HeavyBinding
   ARTIFACTS_TOKEN?: string
+  CLOUDFLARE_ACCOUNT_ID?: string
   DB: D1Database
   /** Code search (lib/search-index.ts), derived from the default branch. */
   SEARCH_DB?: D1Database
   RENDER_QUEUE?: Queue<RenderJob & { cursor?: number }>
 }
-const ACCOUNT = '08b93c93f8b7adc43678e9afba31e4ee'
 /** Waits that the work loop itself resolves (see wake()). */
 const TRIGGERED_WAITS = new Set(['content:refs', 'content:observed', 'content:tips', 'conversations:finish'])
 /** One SQLite database per owner/repo. No tokens in SQL, jobs, RPC results or
@@ -1391,7 +1392,7 @@ export class RepoIndex extends DurableObject<Env> {
     const { namespace, repo } = await this.connection()
     const path = kind === 'tree' ? `tree/${hash}` : `blob/${hash}`
     const res = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/artifacts/namespaces/${namespace}/repos/${repo}/${path}`,
+      `${artifactsApi(this.env)}/artifacts/namespaces/${namespace}/repos/${repo}/${path}`,
       { headers: { authorization: `Bearer ${this.env.ARTIFACTS_TOKEN}` } },
     )
     if (res.status === 404) throw new ApiError(404, 'Object not found')
@@ -1595,7 +1596,7 @@ export class RepoIndex extends DurableObject<Env> {
   protected async commitInfo(hash: string): Promise<Commit> {
     const { namespace, repo } = await this.connection()
     const res = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/artifacts/namespaces/${namespace}/repos/${repo}/commit/${hash}`,
+      `${artifactsApi(this.env)}/artifacts/namespaces/${namespace}/repos/${repo}/commit/${hash}`,
       {
         headers: { authorization: `Bearer ${this.env.ARTIFACTS_TOKEN}` },
       },
@@ -1632,7 +1633,7 @@ export class RepoIndex extends DurableObject<Env> {
     if (!this.env.ARTIFACTS_TOKEN)
       throw new Error('ARTIFACTS_TOKEN is not set on this worker')
     const res = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/artifacts/namespaces/${namespace}/tokens`,
+      `${artifactsApi(this.env)}/artifacts/namespaces/${namespace}/tokens`,
       {
         method: 'POST',
         headers: {
@@ -1649,7 +1650,7 @@ export class RepoIndex extends DurableObject<Env> {
     if (!res.ok || !minted.success)
       throw new Error('repo index could not mint a read token')
     const token = minted.result.plaintext.split('?')[0],
-      url = `https://${ACCOUNT}.artifacts.cloudflare.net/git/${namespace}/${repo}.git`
+      url = `${artifactsGit(this.env)}/${namespace}/${repo}.git`
     return { token, url, namespace, repo }
   }
   private async work() {

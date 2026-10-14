@@ -6,6 +6,7 @@ import * as clone from './routes/clone.js'
 import { runWithCloudflareContext, type CloudflareContext } from './context.js'
 import { runWithRequest } from './request.js'
 import { scheduledJobs, queueJobs } from './jobs.js'
+import { rememberAccount } from './account.js'
 import type { MessageBatch } from '@cloudflare/workers-types'
 // Workers can't compile WebAssembly from bytes at run time: the bundler
 // compiles cqx's core module here and the scorer picks it up from globalThis.
@@ -52,6 +53,7 @@ export function match(pathname: string, method: string): { handler: Handler; par
 
 /** Answer one request with its bindings and request in context. */
 export function answer(request: Request, env: CloudflareContext['env'], ctx: CloudflareContext['ctx']): Promise<Response> {
+  rememberAccount(env)
   return runWithCloudflareContext({ env, ctx }, () => runWithRequest(request, async () => {
     const found = match(new URL(request.url).pathname, request.method)
     if (!found) return Response.json({ message: 'Not Found' }, { status: 404 })
@@ -62,18 +64,39 @@ export function answer(request: Request, env: CloudflareContext['env'], ctx: Clo
 export default {
   fetch: answer,
   scheduled(event: { scheduledTime?: number }, env: CloudflareContext['env'], ctx: CloudflareContext['ctx']) {
+    rememberAccount(env)
     return runWithCloudflareContext({ env, ctx }, () => scheduledJobs(event, env))
   },
   async queue(batch: MessageBatch<unknown>, env: CloudflareContext['env'], ctx: CloudflareContext['ctx']) {
+    rememberAccount(env)
     await runWithCloudflareContext({ env, ctx }, () => queueJobs(batch, env))
   },
 }
 
-export { RepoIndex } from './repo-index-do.js'
-export { RunQueue } from './actions/queue-do.js'
-export { ForgeEvents } from './events/hub-do.js'
-export { ApiControl } from './api/control-do.js'
-export { SettingsRename } from './settings-rename-do.js'
-export { RunnerPool } from './actions/pool-do.js'
-export { RepoImport } from './import/do.js'
-export { RepoChannel } from './channel/do.js'
+// Each Durable Object learns the account from its own bindings, since its
+// isolate may never see a request through the entry above.
+import { RepoIndex as RepoIndexBase } from './repo-index-do.js'
+import { RunQueue as RunQueueBase } from './actions/queue-do.js'
+import { ForgeEvents as ForgeEventsBase } from './events/hub-do.js'
+import { ApiControl as ApiControlBase } from './api/control-do.js'
+import { SettingsRename as SettingsRenameBase } from './settings-rename-do.js'
+import { RunnerPool as RunnerPoolBase } from './actions/pool-do.js'
+import { RepoImport as RepoImportBase } from './import/do.js'
+import { RepoChannel as RepoChannelBase } from './channel/do.js'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each class names its own state and env types
+type Constructor = abstract new (...args: any[]) => object
+function knowsAccount<C extends Constructor>(Base: C): C {
+  abstract class Bound extends Base {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(...args: any[]) { rememberAccount(args[1]); super(args[0], args[1]) }
+  }
+  return Bound
+}
+export const RepoIndex = knowsAccount(RepoIndexBase)
+export const RunQueue = knowsAccount(RunQueueBase)
+export const ForgeEvents = knowsAccount(ForgeEventsBase)
+export const ApiControl = knowsAccount(ApiControlBase)
+export const SettingsRename = knowsAccount(SettingsRenameBase)
+export const RunnerPool = knowsAccount(RunnerPoolBase)
+export const RepoImport = knowsAccount(RepoImportBase)
+export const RepoChannel = knowsAccount(RepoChannelBase)

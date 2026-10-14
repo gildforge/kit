@@ -39,8 +39,9 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "npm run build && node --test 'src/**/*.test.ts'",
-    "prepublishOnly": "npm run build",
-    "sync": "node scripts/sync.mjs"
+    "prepublishOnly": "npm run build && npm run bundle",
+    "sync": "node scripts/sync.mjs",
+    "bundle": "node scripts/bundle.mjs"
   },
   "dependencies": {
     "shiki": "^4.5.0",
@@ -66,7 +67,8 @@
     "typescript": "^7.0.2",
     "@types/markdown-it": "14",
     "next": "^16.3.8",
-    "@cloudflare/workers-types": "^5.20261006.1"
+    "@cloudflare/workers-types": "^5.20261006.1",
+    "wrangler": "4.151.0"
   },
   "publishConfig": {
     "access": "public"

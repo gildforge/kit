@@ -7,6 +7,7 @@ import { runWithCloudflareContext, type CloudflareContext } from './context.js'
 import { runWithRequest } from './request.js'
 import { scheduledJobs, queueJobs } from './jobs.js'
 import { rememberAccount } from './account.js'
+import { instanceHome } from './instance-home.js'
 import type { MessageBatch } from '@cloudflare/workers-types'
 // Workers can't compile WebAssembly from bytes at run time: the bundler
 // compiles cqx's core module here and the scorer picks it up from globalThis.
@@ -55,7 +56,9 @@ export function match(pathname: string, method: string): { handler: Handler; par
 export function answer(request: Request, env: CloudflareContext['env'], ctx: CloudflareContext['ctx']): Promise<Response> {
   rememberAccount(env)
   return runWithCloudflareContext({ env, ctx }, () => runWithRequest(request, async () => {
-    const found = match(new URL(request.url).pathname, request.method)
+    const { pathname } = new URL(request.url)
+    if (pathname === '/' && (request.method === 'GET' || request.method === 'HEAD')) return instanceHome(request)
+    const found = match(pathname, request.method)
     if (!found) return Response.json({ message: 'Not Found' }, { status: 404 })
     return found.handler(request, { params: Promise.resolve(found.params) })
   }))

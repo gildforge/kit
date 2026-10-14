@@ -1,4 +1,5 @@
 # npm trusted publishing keys on this file name: keep it publish.yml.
+# The workflow only stages a version; Sami approves it on npm with 2FA.
 name: publish
 on:
   release:
@@ -19,4 +20,4 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm install -g npm@latest
       - run: npm ci --ignore-scripts || npm install --ignore-scripts
-      - run: npm publish --provenance --access public
+      - run: npm stage publish --provenance --access public

@@ -1,0 +1,22 @@
+import { z } from 'zod'
+import { channelState } from '../channel/state.js'
+import { sessionObservation } from '../sessions-contract.js'
+export const channelCursor = z.string().regex(/^(0|[1-9][0-9]{0,14})$/)
+export const channelAuthor = z.object({ name: z.string(), kind: z.enum(['human', 'agent']) })
+export const channelMessage = z.object({
+  cursor: channelCursor, id: z.string(), created_at: z.string(),
+  reply_to: channelCursor.nullable(), author: channelAuthor, kind: z.enum(['message', 'system']), body: z.string(),
+  link: z.object({ href: z.string(), label: z.string() }).nullable(),
+})
+export const channelPage = z.object({ messages: z.array(channelMessage), cursor: channelCursor, before: channelCursor.nullable(), after: channelCursor.nullable() })
+export const channelQuery = z.object({ before: channelCursor.optional(), after: channelCursor.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }).refine(q => !(q.before && q.after), 'Use before or after, not both')
+export const channelInput = z.object({ body: z.string().trim().min(1).max(4000), reply_to: channelCursor.optional() })
+export const channelParticipant = channelAuthor.extend({ prefix: z.enum(['@', '%', '+', '']), sponsor: z.string().nullable(), scopes: z.array(z.string()), online: z.boolean(), state: channelState.nullable().optional(), session: sessionObservation.nullable().optional() })
+export const channelParticipants = z.object({ participants: z.array(channelParticipant), can_post: z.boolean(), viewer: z.string().nullable() })
+export type ChannelMessage = z.output<typeof channelMessage>
+export type ChannelParticipant = z.output<typeof channelParticipant>
+export type ChannelPage = z.output<typeof channelPage>
+export type ChannelQuery = z.output<typeof channelQuery>
+
+export type ChannelPeople = z.output<typeof channelParticipants>
+export interface ChannelInitial extends ChannelPeople { page: ChannelPage; viewer_resolved: boolean }

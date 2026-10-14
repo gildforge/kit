@@ -13,7 +13,7 @@ npm install @gildforge/kit
 
 | import | what it holds |
 |---|---|
-| `@gildforge/kit/engine/*` | shapes and logic with no platform in them: commits, diffs, fragments, cqx reports, the treemap layout, routes |
+| `@gildforge/kit/engine/*` | logic with no platform in it: the API contracts and routing, Actions workflows, the Agents channel, events, imports, git helpers, sessions, commits, diffs, fragments, cqx reports, the treemap layout |
 | `@gildforge/kit/render/*` | the repository views (shell, code, commit, Glance, score, actions) and the client router that swaps pre-rendered fragments |
 | `@gildforge/kit/presentation/*` | headers, fonts and the copy and sidebar helpers every page shares |
 | `@gildforge/kit/<path>.css` | the stylesheets those views use |

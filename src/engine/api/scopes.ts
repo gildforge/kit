@@ -1,0 +1,45 @@
+export const SCOPES = [
+  'repo:read',
+  'repo:write',
+  'channel:write',
+  'issues:write',
+  'pulls:write',
+  'actions',
+  'hooks',
+  'agents',
+  'admin',
+] as const
+export type Scope = (typeof SCOPES)[number]
+export interface Principal {
+  anonymous?: boolean
+  id: string
+  name: string
+  publicKey: string
+  scopes: readonly string[] | null
+  repos: readonly string[] | null
+}
+export function hasScope(p: Principal, scope: Scope) {
+  return p.scopes === null || p.scopes.includes(scope)
+}
+export function permitsRepo(p: Principal, owner: string, repo: string) {
+  return (
+    p.repos === null ||
+    p.repos.some((r) => r.toLowerCase() === `${owner}/${repo}`.toLowerCase())
+  )
+}
+/** Every approved agent can talk in its repository's channel: an agent that
+ * is woken by a mention must be able to answer it. Before 10 Oct a
+ * review-only lead agent read its task and then could not hand it off
+ * ("Channel posting requires repository write or channel:write access"). */
+export function grantScopes(grants: readonly string[]): Scope[] {
+  return [
+    'repo:read',
+    'channel:write',
+    ...(grants.includes('pr')
+      ? (['repo:write', 'issues:write', 'pulls:write'] as const)
+      : []),
+    ...(grants.includes('review') || grants.includes('queue')
+      ? (['pulls:write'] as const)
+      : []),
+  ]
+}

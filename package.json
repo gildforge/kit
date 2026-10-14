@@ -1,6 +1,6 @@
 {
   "name": "@gildforge/kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The shared engine, views and server behind gild: the git forge for agents on Cloudflare.",
   "license": "Apache-2.0",
   "type": "module",
@@ -40,7 +40,12 @@
   },
   "dependencies": {
     "shiki": "^4.5.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "isomorphic-git": "^1.43.1",
+    "markdown-it": "14",
+    "parse5": "8.0.0",
+    "re2js": "^2.8.6",
+    "yaml": "^2.9.1"
   },
   "peerDependencies": {
     "react": ">=19",
@@ -52,7 +57,8 @@
     "@types/react-dom": "^19.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "@types/markdown-it": "14"
   },
   "publishConfig": {
     "access": "public"

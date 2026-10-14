@@ -1,0 +1,41 @@
+// The Worker a gild install deploys into its own Cloudflare account.
+// gild desktop fills in the account's resource ids and PUBLIC_ORIGIN;
+// `wrangler deploy -c template/wrangler.jsonc` works the same by hand.
+{
+  "name": "gild",
+  "main": "../dist/server/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "limits": { "cpu_ms": 30000 },
+  "vars": { "PUBLIC_ORIGIN": "https://gild.example.workers.dev", "ARTIFACTS_EVENTS_QUEUE_ID": "" },
+  "observability": { "logs": { "enabled": true } },
+  "r2_buckets": [{ "binding": "FRAGMENTS", "bucket_name": "gild-fragments" }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "gild", "database_id": "", "migrations_dir": "migrations" },
+    { "binding": "SEARCH_DB", "database_name": "gild-search", "database_id": "", "migrations_dir": "migrations-search" }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "REPO_IMPORT", "class_name": "RepoImport" },
+      { "name": "RUNNER_POOL", "class_name": "RunnerPool" },
+      { "name": "API_CONTROL", "class_name": "ApiControl" },
+      { "name": "REPO_INDEX", "class_name": "RepoIndex" },
+      { "name": "RUN_QUEUE", "class_name": "RunQueue" },
+      { "name": "EVENTS", "class_name": "ForgeEvents" },
+      { "name": "SETTINGS_RENAME", "class_name": "SettingsRename" },
+      { "name": "REPO_CHANNEL", "class_name": "RepoChannel" }
+    ]
+  },
+  "migrations": [
+    { "tag": "gild-v1", "new_sqlite_classes": ["RepoIndex", "RunQueue", "ApiControl", "ForgeEvents", "SettingsRename", "RunnerPool", "RepoImport", "RepoChannel"] }
+  ],
+  "queues": {
+    "producers": [{ "binding": "WEBHOOKS", "queue": "gild-webhooks" }],
+    "consumers": [
+      { "queue": "gild-artifacts-events", "max_batch_size": 100, "max_batch_timeout": 2, "max_retries": 5 },
+      { "queue": "gild-webhooks", "max_batch_size": 10, "max_batch_timeout": 1, "max_retries": 7, "dead_letter_queue": "gild-webhooks-dead" },
+      { "queue": "gild-webhooks-dead", "max_batch_size": 10, "max_retries": 7 }
+    ]
+  },
+  "triggers": { "crons": ["* * * * *"] }
+}

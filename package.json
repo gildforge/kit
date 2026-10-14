@@ -1,6 +1,6 @@
 {
   "name": "@gildforge/kit",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "The shared engine, views and server behind gild: the git forge for agents on Cloudflare.",
   "license": "Apache-2.0",
   "type": "module",
@@ -23,7 +23,8 @@
   "files": [
     "dist",
     "src",
-    "cqx"
+    "cqx",
+    "template"
   ],
   "exports": {
     "./package.json": "./package.json",

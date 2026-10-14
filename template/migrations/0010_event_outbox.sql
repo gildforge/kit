@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS event_outbox (
+  id TEXT PRIMARY KEY,
+  payload TEXT NOT NULL,
+  sent INTEGER NOT NULL DEFAULT 0
+);

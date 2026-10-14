@@ -1,0 +1,4 @@
+import { legacy } from '../../../../../../api/legacy.js'
+type Context={params:Promise<{owner:string;repo:string;operation?:string[]}>}
+export async function GET(request:Request,c:Context) {const {owner,repo,operation}=await c.params;if(operation?.length===3 && operation[0]==='pulls' && operation[2]==='patch' && /^[1-9][0-9]*$/.test(operation[1]))return legacy(request,'importPatch',{owner,repo,number:operation[1]});if(operation?.length)return new Response(null,{status:404});return legacy(request,'importStatus',{owner,repo})}
+export async function POST(request:Request,c:Context) {const {owner,repo,operation}=await c.params;const action=operation?.join('/');if(!['retry','cutover'].includes(action??''))return new Response(null,{status:404});return legacy(request,action==='retry'?'importRetry':'importCutover',{owner,repo})}

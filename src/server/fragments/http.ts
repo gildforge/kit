@@ -1,3 +1,4 @@
+import { RESERVED_NAMES } from '../../engine/backend-names.js'
 import { viewerShell } from '../../presentation/viewer-shell.js'
 import { historyLimited } from './rate.js'
 import { preparingPage, rendererShell, stillPreparing } from '../../engine/status-pages.js'
@@ -315,9 +316,7 @@ export async function browseHTTP(
   if (
     !match ||
     !['GET', 'HEAD'].includes(request.method) ||
-    ['api', 'git', 'auth', 'settings', 'orgs', 'new', 'import', 'dashboard', 'explore', 'agents', 'keys', 'runners', 'docs', 'brand', 'f', 'pf', 'gild-fragments', '_next'].includes(
-      match[1],
-    )
+    RESERVED_NAMES.includes(match[1])
   )
     return null
   // Next RSC/prefetch fetches must not be handed HTML as Flight data. The

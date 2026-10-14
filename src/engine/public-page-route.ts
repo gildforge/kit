@@ -1,5 +1,6 @@
+import { RESERVED_NAMES } from './backend-names.js'
 import { documentationRoutes } from './documentation-routes.js'
-const reserved = new Set(['api','git','auth','settings','orgs','new','import','dashboard','explore','agents','keys','runners','docs','brand','f','pf','avatars','gild-fragments','_next'])
+const reserved = new Set(RESERVED_NAMES)
 /** Finite public representations. Viewer-only settings/forms stay dynamic.
  * Search queries run in an island; all queries share the stored search shell. */
 export function publicPageRoute(url: URL): { route: string; owner: string | null; repository?: string } | null {

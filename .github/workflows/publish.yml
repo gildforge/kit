@@ -19,4 +19,5 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm install -g npm@latest
       - run: npm ci --ignore-scripts || npm install --ignore-scripts
+      - run: npm test
       - run: npm publish --provenance --access public

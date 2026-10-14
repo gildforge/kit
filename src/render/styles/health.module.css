@@ -1,0 +1,43 @@
+.titleLink { color: var(--ink); }
+.titleLink:hover { color: var(--accent); }
+.bars { display: flex; gap: 5px; align-items: center; }
+.bar { position: relative; display: block; flex: 1; height: 4px; overflow: hidden; border-radius: 999px; background: var(--rule); }
+.bar span { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+.note { font-size: 12px; color: var(--ink-faint); }
+
+.review { display: flex; flex-direction: column; gap: 16px; padding-block: 12px 32px; scroll-margin-top: 16px; }
+.head h2 { margin: 0; font-size: 17px; }
+.head p { margin: 4px 0 0; font-size: 13px; color: var(--ink-dim); max-width: 70ch; }
+
+.dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
+.dial {
+  display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center;
+  padding: 14px 10px 10px; border-radius: 12px; border: 1px solid var(--rule); color: var(--ink);
+}
+.dial:hover { color: var(--ink); border-color: var(--ink-faint); }
+.on { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 7%, transparent); }
+.num { font-family: var(--font-mono); font-size: 19px; font-weight: 600; }
+.dialTitle { font-size: 13px; font-weight: 600; }
+.delta { min-height: 1.2em; font-family: var(--font-mono); font-size: 10.5px; }
+.languageScores { display: flex; flex-direction: column; gap: 4px; width: 100%; border-top: 1px solid var(--rule-soft); margin-top: 6px; padding-top: 8px; }
+.languageScore { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-dim); }
+.languageScore b { font-family: var(--font-mono); font-weight: 600; }
+.languageLines { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font-size: 12px; color: var(--ink-faint); }
+
+.panels { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.findings { flex: 999 1 560px; min-width: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.calibration { flex: 1 1 240px; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; font-size: 13px; color: var(--ink-dim); }
+.calibration p { margin: 12px 16px; }
+.panelHead { padding: 11px 16px; background: var(--panel); border-bottom: 1px solid var(--rule); font-size: 14px; font-weight: 600; color: var(--ink); }
+.empty { margin: 0; padding: 16px; font-size: 13px; color: var(--ink-dim); }
+.rule { padding: 14px 16px; border-bottom: 1px solid var(--rule-soft); display: flex; flex-direction: column; gap: 8px; }
+.rule:last-child { border-bottom: 0; }
+.ruleHead { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; font-family: var(--font-mono); }
+.ruleId { color: var(--accent); }
+.taken { color: var(--ink-faint); }
+.describes, .remedy { margin: 0; font-size: 13px; color: var(--ink-dim); }
+.remedy { color: var(--ink-soft); }
+.finding { display: flex; flex-direction: column; gap: 4px; }
+.where { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+.what { font-size: 13px; }
+.code { margin: 0; background: var(--panel); border: 1px solid var(--rule-soft); border-radius: 6px; padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; overflow-x: auto; white-space: pre; color: var(--ink-soft); }

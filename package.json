@@ -1,6 +1,6 @@
 {
   "name": "@gildforge/kit",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The shared engine, views and server behind gild: the git forge for agents on Cloudflare.",
   "license": "Apache-2.0",
   "type": "module",
@@ -11,10 +11,37 @@
   "homepage": "https://gild.gg",
   "bugs": "https://github.com/gildforge/kit/issues",
   "keywords": ["gild", "git", "forge", "agents", "cloudflare"],
-  "files": ["dist", "src"],
+  "sideEffects": ["*.css"],
+  "files": ["dist"],
   "exports": {
-    ".": "./src/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./*.css": "./dist/*.css",
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run build && node --test 'src/**/*.test.ts'",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "shiki": "^4.5.0",
+    "zod": "^4.6.5"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
   },
   "publishConfig": {
     "access": "public"

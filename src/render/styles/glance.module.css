@@ -1,0 +1,88 @@
+.glance { display: flex; flex-direction: column; gap: 14px; padding-block: 20px; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--ink-dim); }
+.stats strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.crumbs { font-family: var(--font-mono); font-size: 13px; color: var(--ink-faint); }
+.crumbs a { color: var(--ink-dim); }
+.crumbs a:hover { color: var(--ink); }
+.crumbs .here { color: var(--ink); font-weight: 600; }
+
+/* The map keeps one shape at every width, so the layout computed on the
+   server (160 × 100) is the layout drawn. */
+.map {
+  --cold: color-mix(in oklab, var(--panel) 70%, var(--ink) 4%);
+  position: relative; width: 100%; aspect-ratio: 16 / 10; container-type: inline-size;
+  background: var(--bg); border: 1px solid var(--rule); border-radius: 10px;
+}
+
+.folder { position: absolute; border-radius: 4px; background: color-mix(in oklab, var(--ink) 3%, transparent); }
+.folderHead {
+  position: absolute; inset: 0 0 auto 0; height: 4.2%; min-height: 16px;
+  display: flex; justify-content: space-between; gap: 6px; align-items: center; padding: 0 6px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); white-space: nowrap; overflow: hidden;
+}
+.folderHead:hover { color: var(--ink); }
+.folderHot .folderHead { color: var(--ink-soft); }
+.folderShare { color: var(--heat-hot); }
+
+.tile {
+  position: absolute; box-sizing: border-box; border: 1px solid var(--bg); border-radius: 3px;
+  background: color-mix(in oklab, var(--heat-hot) var(--heat), var(--cold));
+  display: flex; align-items: flex-start; padding: 3px 5px;
+  font-family: var(--font-mono); font-size: 10.5px; line-height: 1.3; color: var(--ink-faint);
+}
+.tile { container-type: size; }
+.label { min-width: 0; max-width: 100%; max-height: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile:hover { z-index: 3; }
+/* A label only where it has room to be read. */
+@container (max-width: 56px) or (max-height: 18px) { .label { display: none; } }
+/* On a phone the folder strips are too thin to read; the list below and the
+   lit tiles carry it there. */
+@container (max-width: 640px) { .folderHead { display: none; } }
+.hot, .hot:hover { color: var(--ink); font-weight: 600; cursor: pointer; }
+/* Hovering a lit tile keeps its label colour (the global a:hover would turn it gold). */
+.strong, .strong:hover { color: var(--heat-ink); }
+.hot:hover { background: color-mix(in oklab, var(--heat-hot) calc(var(--heat) + 14%), var(--cold)); outline: 2px solid var(--ink); outline-offset: -2px; }
+.tile:not(.hot):hover { outline: 1px solid var(--ink-faint); outline-offset: -1px; }
+
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 12.5px; color: var(--ink-faint); }
+.ramp { width: 120px; height: 9px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--panel) 70%, var(--ink) 4%), color-mix(in oklab, var(--heat-hot) 22%, var(--panel)), var(--heat-hot)); }
+.hint { flex-basis: 100%; }
+@media (min-width: 760px) { .hint { flex-basis: auto; margin-left: auto; } }
+
+.where { display: flex; flex-direction: column; gap: 2px; max-width: 760px; }
+.where h3 { margin: 6px 0 8px; font-size: 15px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 120px 44px; gap: 12px; align-items: center; padding: 5px 8px; border-radius: 6px; color: var(--ink); font-size: 13px; }
+.row:hover { background: var(--panel); }
+.file { font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dim { color: var(--ink-faint); }
+.bar { height: 6px; border-radius: 3px; background: var(--panel); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--heat-hot); }
+.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+@media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr) 44px; } .bar { display: none; } }
+
+/* The hover card: what happened to this file, at a glance. */
+.tip {
+  position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 4;
+  display: none; flex-direction: column; gap: 3px; width: max-content; max-width: min(320px, 80vw);
+  padding: 8px 10px; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--tip-ink) 14%, transparent);
+  background: var(--tip-bg); box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 400; line-height: 1.4; color: var(--tip-ink);
+  white-space: normal; pointer-events: none;
+}
+.tile:hover .tip, .tile:focus-visible .tip { display: flex; }
+.tipBelow { bottom: auto; top: calc(100% + 6px); }
+.tipLeft { left: auto; right: 0; }
+.tipPath { overflow-wrap: anywhere; font-weight: 600; }
+.tipNums { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.tipAdd { color: var(--tip-add); font-weight: 600; }
+.tipDel { color: var(--tip-del); font-weight: 600; }
+.tipDim { color: var(--tip-dim); }
+
+.tile.read {outline:2px dotted var(--accent);outline-offset:-3px}
+.tile.written {outline:2px solid var(--accent);outline-offset:-3px}
+.receiptLegend {font-size:12px;color:var(--ink-dim);margin:0;line-height:1.6}
+/* Agent map tiles carry their own colours; hover outlines instead of tinting. */
+.agentTile { color: var(--ink); font-weight: 600; cursor: pointer; }
+.agentTile:hover { outline: 2px solid var(--ink); outline-offset: -2px; z-index: 3; }

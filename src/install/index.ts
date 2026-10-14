@@ -126,35 +126,85 @@ export async function install(options: InstallOptions): Promise<Installed> {
   const url = `https://${name}.${subdomain}.workers.dev`
   progress('subdomain', 'done', `${subdomain}.workers.dev`)
 
+  // Every resource an install creates is recorded in its own database
+  // (gild_install), and only recorded resources are reused: an install never
+  // adopts a database, bucket, queue or Worker it did not make, such as
+  // another deployment's in the same account. The account is surveyed first,
+  // so a refusal creates nothing.
   progress('databases', 'running')
-  const databases = new Map<string, string>()
-  for (const d of manifest.d1_databases) {
-    const dbName = rename(d.database_name, name)
+  const dbNames = new Map(manifest.d1_databases.map(d => [d.binding, rename(d.database_name, name)]))
+  const main = manifest.d1_databases.find(d => d.binding === 'DB') ?? manifest.d1_databases[0]
+  const mainName = dbNames.get(main.binding)!
+  const foundDatabases = new Map<string, string>()
+  for (const dbName of dbNames.values()) {
     const found = (await cf.get<{ uuid: string; name: string }[]>(`${a}/d1/database?name=${encodeURIComponent(dbName)}`)).find(x => x.name === dbName)
-    databases.set(d.binding, found?.uuid ?? (await cf.call<{ uuid: string }>(`${a}/d1/database`, { method: 'POST', json: { name: dbName } })).result.uuid)
+    if (found) foundDatabases.set(dbName, found.uuid)
+  }
+  const ledger = (id: string, sql: string, params: unknown[] = []) =>
+    cf.call<{ results: Record<string, unknown>[] }[]>(`${a}/d1/database/${id}/query`, { method: 'POST', json: { sql, params } })
+  const owned = new Set<string>()
+  if (foundDatabases.has(mainName)) {
+    try {
+      for (const r of (await ledger(foundDatabases.get(mainName)!, 'SELECT resource FROM gild_install')).result[0]?.results ?? []) owned.add(String(r.resource))
+    } catch (error) {
+      if (!(error instanceof CloudflareError) || !/no such table/i.test(error.message)) throw error
+    }
+  }
+  const bucketNames = manifest.r2_buckets.map(b => rename(b.bucket_name, name))
+  const foundBuckets = new Set<string>()
+  for (const bucket of bucketNames) {
+    try {
+      await cf.get(`${a}/r2/buckets/${bucket}`)
+      foundBuckets.add(bucket)
+    } catch (error) {
+      if (!(error instanceof CloudflareError) || error.status !== 404) throw error
+    }
+  }
+  const queueNames = [...new Set([...manifest.queues.producers.map(p => p.queue), ...manifest.queues.consumers.flatMap(c => [c.queue, ...(c.dead_letter_queue ? [c.dead_letter_queue] : [])])])]
+  const existingQueues = await cf.all<{ queue_id: string; queue_name: string }>(`${a}/queues`)
+  const scripts = await cf.get<{ id: string; migration_tag?: string }[]>(`${a}/workers/scripts`)
+  const existing = scripts.find(s => s.id === name)
+  const conflicts = [
+    ...[...foundDatabases.keys()].filter(n => !owned.has(`d1:${n}`)).map(n => `D1 database "${n}"`),
+    ...[...foundBuckets].filter(b => !owned.has(`r2:${b}`)).map(b => `R2 bucket "${b}"`),
+    ...queueNames.map(q => rename(q, name)).filter(q => existingQueues.some(x => x.queue_name === q) && !owned.has(`queue:${q}`)).map(q => `queue "${q}"`),
+    ...(existing && !owned.has(`worker:${name}`) ? [`Worker "${name}"`] : []),
+  ]
+  if (conflicts.length)
+    throw new Error(`This account already has ${conflicts.join(', ')}, not made by a gild install named "${name}". Choose another name for this install.`)
+
+  const databases = new Map<string, string>()
+  const mainId = foundDatabases.get(mainName) ?? (await cf.call<{ uuid: string }>(`${a}/d1/database`, { method: 'POST', json: { name: mainName } })).result.uuid
+  databases.set(main.binding, mainId)
+  await ledger(mainId, 'CREATE TABLE IF NOT EXISTS gild_install (resource TEXT PRIMARY KEY, created_at INTEGER NOT NULL)')
+  const own = async (resource: string) => {
+    if (owned.has(resource)) return
+    await ledger(mainId, 'INSERT OR IGNORE INTO gild_install (resource, created_at) VALUES (?, ?)', [resource, Date.now()])
+    owned.add(resource)
+  }
+  await own(`d1:${mainName}`)
+  for (const d of manifest.d1_databases) {
+    if (d === main) continue
+    const dbName = dbNames.get(d.binding)!
+    databases.set(d.binding, foundDatabases.get(dbName) ?? (await cf.call<{ uuid: string }>(`${a}/d1/database`, { method: 'POST', json: { name: dbName } })).result.uuid)
+    await own(`d1:${dbName}`)
   }
   progress('databases', 'done', [...databases.keys()].join(', '))
 
   progress('bucket', 'running')
-  for (const b of manifest.r2_buckets) {
-    const bucket = rename(b.bucket_name, name)
-    try {
-      await cf.get(`${a}/r2/buckets/${bucket}`)
-    } catch (error) {
-      if (!(error instanceof CloudflareError) || error.status !== 404) throw error
-      await cf.call(`${a}/r2/buckets`, { method: 'POST', json: { name: bucket } })
-    }
+  for (const bucket of bucketNames) {
+    if (!foundBuckets.has(bucket)) await cf.call(`${a}/r2/buckets`, { method: 'POST', json: { name: bucket } })
+    await own(`r2:${bucket}`)
   }
   progress('bucket', 'done')
 
   progress('queues', 'running')
-  const queueNames = new Set([...manifest.queues.producers.map(p => p.queue), ...manifest.queues.consumers.flatMap(c => [c.queue, ...(c.dead_letter_queue ? [c.dead_letter_queue] : [])])])
-  const existingQueues = await cf.all<{ queue_id: string; queue_name: string }>(`${a}/queues`)
   const queues = new Map<string, string>()
   for (const q of queueNames) {
     const queueName = rename(q, name)
     const found = existingQueues.find(x => x.queue_name === queueName)
     queues.set(q, found?.queue_id ?? (await cf.call<{ queue_id: string }>(`${a}/queues`, { method: 'POST', json: { queue_name: queueName } })).result.queue_id)
+    await own(`queue:${queueName}`)
   }
   progress('queues', 'done', `${queues.size} queues`)
 
@@ -176,8 +226,6 @@ export async function install(options: InstallOptions): Promise<Installed> {
   progress('migrations', 'done', applied ? `${applied} applied` : 'up to date')
 
   progress('worker', 'running')
-  const scripts = await cf.get<{ id: string; migration_tag?: string }[]>(`${a}/workers/scripts`)
-  const existing = scripts.find(s => s.id === name)
   const bindings: Record<string, unknown>[] = [
     ...Object.entries({ ...manifest.vars, PUBLIC_ORIGIN: url, CLOUDFLARE_ACCOUNT_ID: options.accountId, ARTIFACTS_EVENTS_QUEUE_ID: queues.get(manifest.queues.consumers.find(c => c.queue.endsWith('-artifacts-events'))?.queue ?? '') ?? '' })
       .map(([key, text]) => ({ type: 'plain_text', name: key, text })),
@@ -219,6 +267,7 @@ export async function install(options: InstallOptions): Promise<Installed> {
     form.set(m.name, new Blob([body as BlobPart], { type: m.type === 'wasm' ? 'application/wasm' : 'application/javascript+module' }), m.name)
   }
   await cf.call(`${a}/workers/scripts/${name}`, { method: 'PUT', body: form })
+  await own(`worker:${name}`)
   await cf.call(`${a}/workers/scripts/${name}/subdomain`, { method: 'POST', json: { enabled: true, previews_enabled: false } })
   progress('worker', 'done', existing ? 'upgraded' : 'uploaded')
 

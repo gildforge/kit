@@ -7,7 +7,7 @@ import { install } from '../../dist/install/index.js'
 function account() {
   const state = {
     subdomain: 'acme',
-    databases: [] as { uuid: string; name: string; sql: string[] }[],
+    databases: [] as { uuid: string; name: string; sql: string[]; ledger?: string[] }[],
     buckets: new Set<string>(),
     queues: [] as { queue_id: string; queue_name: string; consumers: { consumer_id: string; script_name: string; body: unknown }[] }[],
     scripts: [] as { id: string; migration_tag?: string; metadata: any }[],
@@ -31,6 +31,12 @@ function account() {
     if (q) {
       const db = state.databases.find(d => d.uuid === q[1])!
       const sql: string = body.sql
+      if (/^SELECT resource FROM gild_install/.test(sql)) {
+        if (!db.ledger) return new Response(JSON.stringify({ success: false, result: null, errors: [{ code: 7500, message: 'no such table: gild_install: SQLITE_ERROR' }] }), { status: 400 })
+        return ok([{ results: db.ledger.map(resource => ({ resource })) }])
+      }
+      if (/^CREATE TABLE IF NOT EXISTS gild_install/.test(sql)) { db.ledger ??= []; return ok([{ results: [] }]) }
+      if (/^INSERT OR IGNORE INTO gild_install/.test(sql)) { if (!db.ledger!.includes(body.params[0])) db.ledger!.push(body.params[0]); return ok([{ results: [] }]) }
       if (/^SELECT name FROM d1_migrations/.test(sql)) return ok([{ results: db.sql.filter(s => s.startsWith('applied:')).map(s => ({ name: s.slice(8) })) }])
       if (/^SELECT name, public_key FROM claims/.test(sql)) return ok([{ results: state.rows.claims.filter(r => r[0] === body.params[0]).map(r => ({ name: r[0], public_key: r[1] })) }])
       if (/^INSERT INTO claims/.test(sql)) state.rows.claims.push(body.params)
@@ -125,4 +131,29 @@ test('a name another key owns is refused', async () => {
   const cf = account()
   await install({ token: 't', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch })
   await assert.rejects(install({ token: 't', accountId: 'acct', owner: { ...owner, publicKey: 'ssh-ed25519 BBBB other' }, template, fetch: cf.fetch as typeof fetch }), /different key/)
+})
+
+test('an account with another deployment\'s resources is refused before anything is made', async () => {
+  const cf = account()
+  // gild.gg's own resources, in the account it deploys from.
+  cf.state.databases.push({ uuid: 'prod-search', name: 'gild-search', sql: [] })
+  cf.state.buckets.add('gild-fragments')
+  cf.state.queues.push({ queue_id: 'prod-webhooks', queue_name: 'gild-webhooks', consumers: [{ consumer_id: 'c', script_name: 'gild-site', body: {} }] })
+  await assert.rejects(install({ token: 't', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch }),
+    /D1 database "gild-search", R2 bucket "gild-fragments", queue "gild-webhooks"/)
+  assert.equal(cf.state.databases.length, 1, 'no database was created')
+  assert.equal(cf.state.queues.length, 1, 'no queue was created')
+  assert.equal(cf.state.scripts.length, 0, 'no Worker was uploaded')
+  assert.deepEqual(cf.state.databases[0].sql, [], 'nothing ran against the other deployment')
+  // Under its own name the install goes ahead beside them.
+  const ok = await install({ token: 't', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch, name: 'mine' })
+  assert.equal(ok.url, 'https://mine.acme.workers.dev')
+  assert.equal(cf.state.queues.find(q => q.queue_name === 'gild-webhooks')!.consumers.length, 1)
+})
+
+test('a database of the same name that no install made is refused', async () => {
+  const cf = account()
+  cf.state.databases.push({ uuid: 'other', name: 'gild', sql: [] })
+  await assert.rejects(install({ token: 't', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch }), /D1 database "gild"/)
+  assert.equal(cf.state.scripts.length, 0)
 })

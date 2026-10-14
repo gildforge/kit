@@ -24,7 +24,8 @@
     "dist",
     "src",
     "cqx",
-    "template"
+    "template",
+    "scripts/install.mjs"
   ],
   "exports": {
     "./package.json": "./package.json",
@@ -38,7 +39,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "npm run build && node --test 'src/**/*.test.ts'",
+    "test": "npm run build && npm run bundle && node --test 'src/**/*.test.ts'",
     "prepublishOnly": "npm run build && npm run bundle",
     "sync": "node scripts/sync.mjs",
     "bundle": "node scripts/bundle.mjs"
@@ -72,5 +73,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "bin": {
+    "gild-install": "scripts/install.mjs"
   }
 }

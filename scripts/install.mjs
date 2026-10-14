@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // Install (or upgrade) gild into a Cloudflare account from a terminal, the
 // same steps gild desktop runs:
 //   CLOUDFLARE_API_TOKEN=… node scripts/install.mjs <account-id> <owner> <email> [name]

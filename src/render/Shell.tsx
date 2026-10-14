@@ -1,9 +1,9 @@
 import assets from 'gild:asset-manifest'
 import tabStyles from 'gild:tab-styles'
-import type { HomeData } from '../engine/fragments.ts'
-import { SiteHeaderView, PortalBarView, SignInView, RepoHeaderView, RepoTabsView, repoTabs, StarView, CloneView } from '../presentation/Headers.tsx'
-import { Sidebar } from './Sidebar.tsx'
-import { RepoIsland } from './RepoIsland.tsx'
+import type { HomeData } from '../engine/fragments.js'
+import { SiteHeaderView, PortalBarView, SignInView, RepoHeaderView, RepoTabsView, repoTabs, StarView, CloneView } from '../presentation/Headers.js'
+import { Sidebar } from './Sidebar.js'
+import { RepoIsland } from './RepoIsland.js'
 import s from './styles/repo.module.css'
 export function RepoHeader({ home: h }: { home: HomeData }) {
   const [owner, repo] = h.repository.split('/'), base = `/${h.repository}`

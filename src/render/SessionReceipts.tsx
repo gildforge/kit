@@ -1,4 +1,4 @@
-import type { Receipt } from '../engine/sessions-contract.ts'
+import type { Receipt } from '../engine/sessions-contract.js'
 import s from './styles/receipts.module.css'
 export function SessionReceipts({
   receipts,

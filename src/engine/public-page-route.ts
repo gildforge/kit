@@ -1,4 +1,4 @@
-import { documentationRoutes } from './documentation-routes.ts'
+import { documentationRoutes } from './documentation-routes.js'
 const reserved = new Set(['api','git','auth','settings','orgs','new','import','dashboard','explore','agents','keys','runners','docs','brand','f','pf','avatars','gild-fragments','_next'])
 /** Finite public representations. Viewer-only settings/forms stay dynamic.
  * Search queries run in an island; all queries share the stored search shell. */

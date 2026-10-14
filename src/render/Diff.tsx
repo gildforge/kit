@@ -1,4 +1,4 @@
-import type { FileDiff } from '../engine/types.ts'
+import type { FileDiff } from '../engine/types.js'
 import s from './styles/repo.module.css'
 
 /** The anchor a file's diff sits at, so Glance can link straight to it. */

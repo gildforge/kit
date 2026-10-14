@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { FragmentLink as Link } from './link.tsx'
-import type { Status } from '../engine/types.ts'
+import { FragmentLink as Link } from './link.js'
+import type { Status } from '../engine/types.js'
 import s from './styles/actions.module.css'
 const live = (status: Status) => ['queued', 'running'].includes(status)
 export function ActionMark({ status }: { status: Status }) {

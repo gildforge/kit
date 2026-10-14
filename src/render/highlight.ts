@@ -1,5 +1,5 @@
-import { escapeHTML } from './context.ts'
-import { digest } from './address.ts'
+import { escapeHTML } from './context.js'
+import { digest } from './address.js'
 import { createHighlighterCore } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 import type { LanguageInput } from 'shiki'

@@ -1,6 +1,6 @@
-import type { Entry, Commit, Change, ListingSnapshot } from './types.ts'
-import type { Report } from './cqx-report.ts'
-import type { Fragment } from '../render/address.ts'
+import type { Entry, Commit, Change, ListingSnapshot } from './types.js'
+import type { Report } from './cqx-report.js'
+import type { Fragment } from '../render/address.js'
 
 export interface RenderJob {
   entity: string
@@ -44,7 +44,7 @@ export interface HomeData {
   contributors: {
     name: string
     count: number
-    picture?: import('./types.ts').ProfilePicture
+    picture?: import('./types.js').ProfilePicture
   }[]
   commits: number
   score: Report | null

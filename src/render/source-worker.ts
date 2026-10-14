@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
-import { bundlePath } from './language.ts'
-import { fragmentURL, RENDER_VERSION } from './address.ts'
-import type { PagePointer, TipManifest } from '../engine/fragments.ts'
+import { bundlePath } from './language.js'
+import { fragmentURL, RENDER_VERSION } from './address.js'
+import type { PagePointer, TipManifest } from '../engine/fragments.js'
 const MAX_BYTES = 200 * 1024 * 1024,
   DB_NAME = 'gild-source-v1'
 interface Record {

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { LANGUAGES, UNSCORED, cqxReads, moduleFor } from './cqx-reads.ts'
+import { LANGUAGES, UNSCORED, cqxReads, moduleFor } from '../../dist/engine/cqx-reads.js'
 
 // One real path per language, from the demo repos this bug hid.
 const SAMPLES: Record<string, string> = {

@@ -1,15 +1,15 @@
 // cqx code health: the five original categories, each starting at 100 and
 // losing points only to a named rule. Bands follow cqx-kit's Score: 90 and up
 // passes, 50 and up warns, below that fails.
-import { FragmentLink as Link } from './link.tsx'
+import { FragmentLink as Link } from './link.js'
 import {
   scoreNote,
   CATEGORIES,
   type Category,
   type Report,
-} from '../engine/cqx-report.ts'
+} from '../engine/cqx-report.js'
 import h from './styles/health.module.css'
-import { LANGUAGES } from '../engine/cqx-reads.ts'
+import { LANGUAGES } from '../engine/cqx-reads.js'
 
 const languageName = (id: string) =>
   (({ cpp: 'C++', csharp: 'C#' }) as Record<string, string>)[id] ??

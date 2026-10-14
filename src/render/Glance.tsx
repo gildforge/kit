@@ -2,9 +2,9 @@
 // Box size is the file's size in lines at the newer side; colour is the share
 // of the change's lines that landed in that file. Untouched files stay dark so
 // the shape of the repo still reads. Folders zoom; files open their diff.
-import { FragmentLink as Link } from './link.tsx'
-import type { FileDiff } from '../engine/types.ts'
-import { box, cleanRoot, layoutRepo, tipSides } from '../engine/treemap-layout.ts'
+import { FragmentLink as Link } from './link.js'
+import type { FileDiff } from '../engine/types.js'
+import { box, cleanRoot, layoutRepo, tipSides } from '../engine/treemap-layout.js'
 import g from './styles/glance.module.css'
 
 interface Item {
@@ -38,7 +38,7 @@ export function Glance({
   zoomHref: (dir: string) => string
   fileHref: (path: string) => string
   what: string
-  receipts?: import('../engine/sessions-contract.ts').Receipt[]
+  receipts?: import('../engine/sessions-contract.js').Receipt[]
 }) {
   const read = new Set(receipts.flatMap((r) => r.files.read)),
     written = new Set(receipts.flatMap((r) => r.files.written))

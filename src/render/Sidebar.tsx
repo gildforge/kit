@@ -1,12 +1,12 @@
 'use client'
 
-import { FragmentLink as Link } from './link.tsx'
+import { FragmentLink as Link } from './link.js'
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { SIDEBAR_BOOTSTRAP, initialSidebarIntent, consumeSidebarIntent } from '../presentation/sidebar-bootstrap.ts'
+import { SIDEBAR_BOOTSTRAP, initialSidebarIntent, consumeSidebarIntent } from '../presentation/sidebar-bootstrap.js'
 
-import { Picture } from './Picture.tsx'
-import type { ProfilePicture } from '../engine/types.ts'
+import { Picture } from './Picture.js'
+import type { ProfilePicture } from '../engine/types.js'
 
 // Rail metrics lifted from the zega dashboard (lib/html.ts + dashboard.css):
 // fixed 22px icon wells, labels hidden (not moved) when collapsed, so the

@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
-import { Sidebar } from './Sidebar.tsx'
-import type { ProfilePicture } from '../engine/types.ts'
+import { Sidebar } from './Sidebar.js'
+import type { ProfilePicture } from '../engine/types.js'
 export function mountIdentity(
   name: string,
   picture: ProfilePicture | undefined,
@@ -26,7 +26,7 @@ export function mountIdentity(
 }
 
 import { useState } from 'react'
-import { StarView } from '../presentation/Headers.tsx'
+import { StarView } from '../presentation/Headers.js'
 import type { Root } from 'react-dom/client'
 const stars = new WeakMap<HTMLElement, Root>()
 export function mountStar(slot: HTMLElement, repository: string, count: number, starred: boolean) {

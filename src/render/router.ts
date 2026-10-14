@@ -1,15 +1,15 @@
-import { installRepoTabs } from './repo-tabs.ts'
-import { publicPageNavigation } from '../engine/public-page-route.ts'
-import { bindCopy } from '../presentation/copy.ts'
-import { installScroll, pushURL, finishScroll, pendingScroll, pauseScroll, saveScroll } from './scroll.ts'
-import { numberLines } from './lines.ts'
-import { PENDING_HTML } from './pending.ts'
-import { contextHTML } from './context.ts'
-import { selectedAttribute, scoreCategory, selectHTML } from './selection.ts'
-import { fragmentURL, RENDER_VERSION, type Fragment } from './address.ts'
-import { intentPrefetch, safeLink, mayPrefetch } from './prefetch.ts'
-import type { TabClient } from './tab-client-contract.ts'
-import type { PagePointer, TipManifest } from '../engine/fragments.ts'
+import { installRepoTabs } from './repo-tabs.js'
+import { publicPageNavigation } from '../engine/public-page-route.js'
+import { bindCopy } from '../presentation/copy.js'
+import { installScroll, pushURL, finishScroll, pendingScroll, pauseScroll, saveScroll } from './scroll.js'
+import { numberLines } from './lines.js'
+import { PENDING_HTML } from './pending.js'
+import { contextHTML } from './context.js'
+import { selectedAttribute, scoreCategory, selectHTML } from './selection.js'
+import { fragmentURL, RENDER_VERSION, type Fragment } from './address.js'
+import { intentPrefetch, safeLink, mayPrefetch } from './prefetch.js'
+import type { TabClient } from './tab-client-contract.js'
+import type { PagePointer, TipManifest } from '../engine/fragments.js'
 interface LocalFile {
   html: string
   content: string
@@ -353,8 +353,8 @@ async function islands(p: PagePointer) {
     starred: boolean
     write: boolean
     picture?: { url?: string }
-    runs: Parameters<typeof import('./commit-client.tsx').mountCommit>[2]
-    receipts: Parameters<typeof import('./commit-client.tsx').mountCommit>[3]
+    runs: Parameters<typeof import('./commit-client.js').mountCommit>[2]
+    receipts: Parameters<typeof import('./commit-client.js').mountCommit>[3]
   }
   if (!data || generation !== islandGeneration) return
   if (commitSha) {

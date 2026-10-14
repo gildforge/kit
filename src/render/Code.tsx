@@ -1,8 +1,8 @@
-import { fileIcon, Folder } from './file-icons.tsx'
-import { Picture } from './Picture.tsx'
-import type { Entry } from '../engine/types.ts'
-import type { HomeData } from '../engine/fragments.ts'
-import { HealthBars } from './Health.tsx'
+import { fileIcon, Folder } from './file-icons.js'
+import { Picture } from './Picture.js'
+import type { Entry } from '../engine/types.js'
+import type { HomeData } from '../engine/fragments.js'
+import { HealthBars } from './Health.js'
 import s from './styles/repo.module.css'
 
 const sort = (entries: Entry[]) =>

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ProfilePicture } from '../engine/types.ts'
+import type { ProfilePicture } from '../engine/types.js'
 import s from './styles/settings.module.css'
 
 /** Every identity picture shares the same theme-aware silhouette and error fallback. */

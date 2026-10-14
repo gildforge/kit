@@ -1,4 +1,4 @@
-import { CATEGORIES } from '../engine/cqx-report.ts'
+import { CATEGORIES } from '../engine/cqx-report.js'
 /** Selection of already compiled HTML, shared by the edge stitch and router.
  * These attributes never introduce data or render markup on a read. */
 export function scoreCategory(url: URL, fallback?: string) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { squarify } from './treemap.ts'
+import { squarify } from '../../dist/engine/treemap.js'
 
 const box = { x: 0, y: 0, w: 160, h: 100 }
 

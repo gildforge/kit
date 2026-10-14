@@ -1,7 +1,7 @@
 // The repo-as-a-treemap layout shared by Glance (where a change landed) and
 // the Agents map (who is working where): one function, so the two maps can't
 // drift. Laid out in a W×H box and drawn in percentages.
-import { squarify, type Rect } from './treemap.ts'
+import { squarify, type Rect } from './treemap.js'
 
 export const W = 160
 export const H = 100

@@ -10,9 +10,20 @@
   },
   "homepage": "https://gild.gg",
   "bugs": "https://github.com/gildforge/kit/issues",
-  "keywords": ["gild", "git", "forge", "agents", "cloudflare"],
-  "sideEffects": ["*.css"],
-  "files": ["dist"],
+  "keywords": [
+    "gild",
+    "git",
+    "forge",
+    "agents",
+    "cloudflare"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist",
+    "src"
+  ],
   "exports": {
     "./package.json": "./package.json",
     "./*.css": "./dist/*.css",

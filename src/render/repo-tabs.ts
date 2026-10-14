@@ -1,7 +1,7 @@
-import { repoTabRoute } from '../engine/repo-tab-route.ts'
-import { safeLink, mayPrefetch } from './prefetch.ts'
-import { pauseScroll, pushURL, finishScroll } from './scroll.ts'
-import type { PagePointer } from '../engine/fragments.ts'
+import { repoTabRoute } from '../engine/repo-tab-route.js'
+import { safeLink, mayPrefetch } from './prefetch.js'
+import { pauseScroll, pushURL, finishScroll } from './scroll.js'
+import type { PagePointer } from '../engine/fragments.js'
 import skeletons from 'gild:tab-skeletons'
 interface Payload {
   html: string

@@ -1,10 +1,10 @@
-import type { Commit as CommitRecord } from '../engine/types.ts'
-import type { Change } from '../engine/types.ts'
-import type { Report } from '../engine/cqx-report.ts'
-import { cleanRoot } from '../engine/treemap-layout.ts'
-import { Glance } from './Glance.tsx'
-import { HealthReview } from './Health.tsx'
-import { FileView } from './Diff.tsx'
+import type { Commit as CommitRecord } from '../engine/types.js'
+import type { Change } from '../engine/types.js'
+import type { Report } from '../engine/cqx-report.js'
+import { cleanRoot } from '../engine/treemap-layout.js'
+import { Glance } from './Glance.js'
+import { HealthReview } from './Health.js'
+import { FileView } from './Diff.js'
 import s from './styles/repo.module.css'
 
 export function Score({

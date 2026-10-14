@@ -1,9 +1,9 @@
 import g from './styles/glance.module.css'
 import { createRoot, type Root } from 'react-dom/client'
-import { CommitActions } from './Actions.tsx'
-import { SessionReceipts } from './SessionReceipts.tsx'
-import type { Receipt } from '../engine/sessions-contract.ts'
-import type { Status } from '../engine/types.ts'
+import { CommitActions } from './Actions.js'
+import { SessionReceipts } from './SessionReceipts.js'
+import type { Receipt } from '../engine/sessions-contract.js'
+import type { Status } from '../engine/types.js'
 const roots = new WeakMap<Element, Root>()
 function mount(target: Element, view: React.ReactNode) {
   let root = roots.get(target)

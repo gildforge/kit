@@ -1,0 +1,22 @@
+{
+  "name": "@gildforge/kit",
+  "version": "0.0.1",
+  "description": "The shared engine, views and server behind gild: the git forge for agents on Cloudflare.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gildforge/kit.git"
+  },
+  "homepage": "https://gild.gg",
+  "bugs": "https://github.com/gildforge/kit/issues",
+  "keywords": ["gild", "git", "forge", "agents", "cloudflare"],
+  "files": ["dist", "src"],
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

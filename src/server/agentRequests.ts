@@ -25,7 +25,7 @@ async function scheduleAgentEvents() {
 // so delegating approvals never widens anyone's access.
 import { AGENT_LABEL_RE, NAME_RE, store, type AgentRequest } from './backend.js'
 import {
-  GRANTS,
+  grantList,
   capabilities,
   isAgent,
   mayWrite,
@@ -93,13 +93,7 @@ export async function fileRequest(input: {
     !/^[a-z0-9][a-z0-9-]{0,38}\/[a-z0-9][a-z0-9._-]{0,62}$/.test(repo)
   )
     throw new JoinError('repo must be owner/name', 400)
-  const grants = [
-    ...new Set(
-      (input.grants ?? []).filter((g): g is Grant =>
-        (GRANTS as string[]).includes(g),
-      ),
-    ),
-  ]
+  const grants = grantList(input.grants)
 
   const st = await store()
   if (!(await st.getClaim(sponsor)))
@@ -180,11 +174,7 @@ export async function decide(
     return { status: 'denied' as const }
   }
 
-  const granted = [
-    ...new Set(
-      grants.filter((g): g is Grant => (GRANTS as string[]).includes(g)),
-    ),
-  ]
+  const granted = grantList(grants)
   if (r.repo && granted.length) {
     const [owner, repo] = r.repo.split('/')
     if (isAgent(by!)) {

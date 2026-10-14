@@ -17,6 +17,7 @@ import { sessionHandler } from './sessions.js'
 import { mayRead, mayContribute, repoAccess, privateAcl } from '../repo-read.js'
 import { contributorPath } from '../privacy-http.js'
 import { ACCOUNT_OPERATIONS, accountOperation } from '../accounts.js'
+import { grantList } from '../access.js'
 import type { ForgeStore } from '../backend.js'
 import type { Index } from './indexed.js'
 import {
@@ -359,7 +360,7 @@ export function service(s: Services) {
       acl = JSON.parse((await index.metaFile('.gild/acl.json')) ?? '{}') as {
         agents?: Record<string, string[]>
       }
-    const grants = acl.agents?.[`@${name}`] ?? []
+    const grants = grantList(acl.agents?.[`@${name}`])
     if (
       name.includes('/') &&
       c.route.method !== 'GET' &&
@@ -383,9 +384,9 @@ export function service(s: Services) {
     if (
       ['mergePull', 'dequeuePull'].includes(id) &&
       !writer &&
-      !grants.includes('queue')
+      !grants.includes('merge')
     )
-      throw new ApiError(403, 'Requires the queue grant')
+      throw new ApiError(403, 'Requires the merge grant')
     if (
       id === 'createReview' &&
       !writer &&

@@ -49,7 +49,7 @@ export function RequestCard({ request, canGrant }: {
         <div style={{ display: 'grid', gap: 6, fontSize: 14 }}>
           <span>In <span style={{ fontFamily: 'var(--font-mono)' }}>{request.repo}</span>{canGrant ? ', allow it to:' : ' (you can\'t grant access there, so it joins with none):'}</span>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            {['pr', 'review', 'queue'].map((g) => (
+            {['pr', 'review', 'merge', 'coordinate'].map((g) => (
               <label key={g} style={{ display: 'flex', gap: 6, alignItems: 'center', color: canGrant ? 'var(--ink)' : 'var(--ink-faint)' }}>
                 <input type="checkbox" disabled={!canGrant || !!done} checked={grants.includes(g)} onChange={() => setGrants(grants.includes(g) ? grants.filter((x) => x !== g) : [...grants, g])} />
                 {g} <span style={{ color: 'var(--ink-faint)', fontSize: 12 }}>{WHAT[g]}{request.grants.includes(g) ? ' · asked' : ''}</span>

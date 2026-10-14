@@ -16,6 +16,7 @@ npm install @gildforge/kit
 | `@gildforge/kit/engine/*` | logic with no platform in it: the API contracts and routing, Actions workflows, the Agents channel, events, imports, git helpers, sessions, commits, diffs, fragments, cqx reports, the treemap layout |
 | `@gildforge/kit/render/*` | the repository views (shell, code, commit, Glance, score, actions) and the client router that swaps pre-rendered fragments |
 | `@gildforge/kit/ui/*` | the interactive views: the Agents channel, Actions, issue and pull forms, branch picker, file tree, Glance, score, search hits, star and clone buttons, webhooks and runners settings, the sidebar and footer |
+| `@gildforge/kit/server/*` | the Worker side: the request's Cloudflare bindings (`server/context`, same convention as OpenNext) and the current request (`server/request`) |
 | `@gildforge/kit/presentation/*` | headers, fonts and the copy and sidebar helpers every page shares |
 | `@gildforge/kit/<path>.css` | the stylesheets those views use |
 

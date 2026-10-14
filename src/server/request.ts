@@ -15,12 +15,13 @@ export const runWithRequest = <T>(request: Request, run: () => T): T => store.al
 /** Where headers come from outside a Worker request (e.g. `next dev`). */
 export function provideRequestHeaders(fallback: () => Promise<Headers>) { store.fallback = fallback }
 
-/** The current request's headers. */
+/** The current request's headers (empty outside a request). */
 export async function requestHeaders(): Promise<Headers> {
   const request = store.als.getStore()
   if (request) return request.headers
   if (store.fallback) return store.fallback()
-  throw new Error('gild: no request in context')
+  // Queues, alarms and scheduled work answer no browser: no cookies, no session.
+  return new Headers()
 }
 
 /** One cookie of the current request. */

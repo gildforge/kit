@@ -1,0 +1,78 @@
+{
+  "version": "0.1.26",
+  "abi_version": 1,
+  "modules": {
+    "core": {
+      "file": "core.wasm",
+      "languages": [
+        "rust",
+        "typescript",
+        "javascript",
+        "go",
+        "java",
+        "kotlin",
+        "swift",
+        "zig",
+        "python",
+        "php"
+      ],
+      "extensions": [
+        "rs",
+        "ts",
+        "tsx",
+        "js",
+        "jsx",
+        "mjs",
+        "cjs",
+        "mts",
+        "cts",
+        "go",
+        "java",
+        "kt",
+        "kts",
+        "swift",
+        "zig",
+        "py",
+        "php"
+      ],
+      "version": "0.1.26",
+      "abi_version": 1,
+      "sha256": "7b3caa3cc4cf8c4a180398b827c224c8c901fe9f3eaa887be65858c90a26f418"
+    },
+    "c": {
+      "file": "c.wasm",
+      "languages": [
+        "c",
+        "cpp"
+      ],
+      "extensions": [
+        "c",
+        "h",
+        "cc",
+        "cpp",
+        "cxx",
+        "hpp",
+        "hh",
+        "hxx",
+        "C",
+        "H"
+      ],
+      "version": "0.1.26",
+      "abi_version": 1,
+      "sha256": "5b00dd8445437e86ca3f1f9c0640c6d668b72f6cf0bfd273effcf536811cf76b"
+    },
+    "csharp": {
+      "file": "csharp.wasm",
+      "languages": [
+        "csharp"
+      ],
+      "extensions": [
+        "cs",
+        "csx"
+      ],
+      "version": "0.1.26",
+      "abi_version": 1,
+      "sha256": "3ca94b98f2741de84e2136d26ba513240722f42f60bc623fba9a608aab1aaae9"
+    }
+  }
+}

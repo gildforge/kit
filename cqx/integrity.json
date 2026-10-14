@@ -1,0 +1,12 @@
+{
+  "version": "0.1.26",
+  "sha256": {
+    "core.wasm": "7b3caa3cc4cf8c4a180398b827c224c8c901fe9f3eaa887be65858c90a26f418",
+    "c.wasm": "5b00dd8445437e86ca3f1f9c0640c6d668b72f6cf0bfd273effcf536811cf76b",
+    "csharp.wasm": "3ca94b98f2741de84e2136d26ba513240722f42f60bc623fba9a608aab1aaae9",
+    "manifest.json": "bc95541744e41bf8fd00e993706333516ee7a221d71ed27ec74c3cff1885a837",
+    "SHA256SUMS": "70b3ba2e59860131d1b197d555b3cb80fdefd3b3562fed54fecbe0d01358bcd0",
+    "cqx-loader.mjs": "b682783dd21534ca04dcc5d86c8a0f7a36783d485315b7645fc5b5482ace895b",
+    "wasm-catalog.mjs": "d3cc1d43abd722beb1b03c12a5c8854b37d30d104b70c9f3f1d7d9e1beb53cb3"
+  }
+}

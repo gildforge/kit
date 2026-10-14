@@ -1,0 +1,97 @@
+.root {
+  max-width: 900px;
+  min-width: 0;
+  padding-block: 24px;
+  overflow-wrap: anywhere;
+}
+.root p {
+  color: var(--ink-dim);
+  line-height: 1.6;
+}
+.form {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.form input:not([type='checkbox']) {
+  width: 100%;
+  min-width: 0;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 10px;
+  font: inherit;
+  box-sizing: border-box;
+}
+.form fieldset {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+.events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.events label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.root button {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.root button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.form > button {
+  justify-self: start;
+  background: var(--ink);
+  color: var(--bg);
+}
+.hook {
+  padding-block: 20px;
+  border-bottom: 1px solid var(--rule);
+  min-width: 0;
+}
+.hook h3 {
+  font-size: 16px;
+}
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hook details {
+  margin-block: 12px;
+  padding: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  min-width: 0;
+}
+.hook summary {
+  cursor: pointer;
+}
+.hook pre {
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}

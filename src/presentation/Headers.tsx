@@ -9,14 +9,36 @@ export function SiteHeaderView({ search, identity, Link = Anchor }: {
   search: ReactNode; identity: ReactNode; Link?: LinkView
 }) {
   return <header className="site-header">
-    <Link href="/" className="site-logo"><img className="site-mark" src="/logo.svg" alt="" width={26} height={26} />gild</Link>
+    <Link href="/" className="site-logo" aria-label="gild"><img className="site-mark" src="/logo.svg" alt="" width={26} height={26} /></Link>
     <PortalBarView search={search} />
     <nav className="site-nav" aria-label="Site">
-      <Link href="/#how">How it works</Link>
-      <a href="https://github.com/gildforge/cli">Source</a>
+      <Link href="/download">Download</Link>
       <span data-identity="">{identity}</span>
     </nav>
   </header>
+}
+
+/** The footer every gild page shares: credit, the logo and wordmark, then links. `theme` is the page's theme control. */
+export function FooterView({ theme, Link = Anchor }: { theme: ReactNode; Link?: LinkView }) {
+  return <footer style={{ borderTop: '1px solid var(--rule)', padding: '22px 16px 34px' }}>
+    <div className="site-footer-grid">
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'start' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- a 22px static avatar */}
+        <img src="/sami.png" alt="" width={22} height={22} style={{ borderRadius: '50%' }} />
+        <span>© {new Date().getUTCFullYear()} <a href="https://samifou.ad" style={{ color: 'var(--ink)' }}>Sami Fouad</a></span>
+      </span>
+      <Link href="/" className="site-logo" aria-label="gild home" style={{ justifySelf: 'center', color: 'var(--ink)' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG mark */}
+        <img className="site-mark" src="/logo.svg" alt="" width={26} height={26} />gild
+      </Link>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 14, justifySelf: 'end' }}>
+        <a href="https://github.com/orgs/gildforge/repositories">github</a>
+        <a href="/brand">brand</a>
+        <a href="https://github.com/sponsors/samifouad">donate</a>
+        {theme}
+      </span>
+    </div>
+  </footer>
 }
 
 export function IdentityView({ name, picture, Link = Anchor }: { name: string; picture?: ReactNode; Link?: LinkView }) {

@@ -1,3 +1,4 @@
+import { RESERVED_NAMES } from '../engine/backend-names.js'
 import {
   mayRead,
   mayContribute,
@@ -25,25 +26,7 @@ export function repositoryPath(
     else return null
   } else if (['git', 'pf'].includes(parts[0])) at = 1
   else if (
-    [
-      'auth',
-      'settings',
-      'orgs',
-      'new',
-      'import',
-      'dashboard',
-      'explore',
-      'search',
-      'agents',
-      'keys',
-      'runners',
-      'docs',
-      'brand',
-      'f',
-      'avatars',
-      'gild-fragments',
-      '_next',
-    ].includes(parts[0]) ||
+    RESERVED_NAMES.includes(parts[0]) ||
     parts[0]?.includes('.')
   )
     return null

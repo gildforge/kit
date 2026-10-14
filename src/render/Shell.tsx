@@ -1,7 +1,7 @@
 import assets from 'gild:asset-manifest'
 import tabStyles from 'gild:tab-styles'
 import type { HomeData } from '../engine/fragments.js'
-import { SiteHeaderView, PortalBarView, SignInView, RepoHeaderView, RepoTabsView, repoTabs, StarView, CloneView } from '../presentation/Headers.js'
+import { SiteHeaderView, FooterView, PortalBarView, SignInView, RepoHeaderView, RepoTabsView, repoTabs, StarView, CloneView } from '../presentation/Headers.js'
 import { Sidebar } from './Sidebar.js'
 import { RepoIsland } from './RepoIsland.js'
 import s from './styles/repo.module.css'
@@ -57,28 +57,7 @@ export function Shell({ version }: { version: string }) {
             dangerouslySetInnerHTML={{ __html: '<!--gild-content-->' }}
           />
         </main>
-        <footer
-          className="site-footer-grid"
-          style={{
-            borderTop: '1px solid var(--rule)',
-            padding: '22px 16px 34px',
-          }}
-        >
-          <span>
-            © <a href="https://samifou.ad">Sami Fouad</a>
-          </span>
-          <span className="site-footer-credit">
-            gild is <a href="https://github.com/gildforge/cli">open source</a>.
-            Built on infrastructure from{' '}
-            <a href="https://cloudflare.com">Cloudflare</a>.
-          </span>
-          <span>
-            <a href="https://github.com/sponsors/samifouad">donate</a>{' '}
-            <button data-theme-toggle="" aria-label="Change theme">
-              ☾
-            </button>
-          </span>
-        </footer>
+        <FooterView theme={<button data-theme-toggle="" aria-label="Change theme">☾</button>} />
       </body>
     </html>
   )

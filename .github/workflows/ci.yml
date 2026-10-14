@@ -1,0 +1,22 @@
+# Checks every push and pull request. No publishing access: read-only token,
+# no OIDC, and the public-ci environment holds no secrets.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    environment: public-ci
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts || npm install --ignore-scripts
+      - run: npm pack --dry-run

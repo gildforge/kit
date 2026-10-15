@@ -29,6 +29,7 @@ import {
   type CFamilyIssue,
 } from './cqx-heavy-limits.js'
 import { scoreCacheKey } from './cqx-score-cache.js'
+import {settleAdvertisedRefs} from '../engine/repo-refs.js'
 import {fencePreparedRefs,preparedRefsEpoch,publishPreparedRefs,publishPreparedHealth,publishPreparedDiff,publishPreparedPullHeads} from './prepared-repository-producer.js'
 import type { HeavyBinding } from './cqx-module.js'
 import type { Change, CommitChange } from './changes.js'
@@ -352,7 +353,9 @@ export class RepoIndex extends DurableObject<Env> {
     const last = Number(this.index.setting('conversations:nudged') ?? 0)
     if (Date.now() - last < 5 * 60_000) return
     this.index.setting('conversations:nudged', String(Date.now()))
-    if (!this.index.setting('owner')) return this.refresh(owner, repo)
+    // Outstanding pushes settle only against a fresh ref advertisement.
+    if (!this.index.setting('owner') || Object.keys(JSON.parse(this.index.setting('fragments:pending-refs') ?? '{}')).length)
+      return this.refresh(owner, repo)
     await this.wake(Date.now() + 1)
   }
   async refresh(owner: string, repo: string, target?: Target) {
@@ -402,13 +405,23 @@ export class RepoIndex extends DurableObject<Env> {
   }
   /** A push fence is satisfied by authoritative indexed refs, independently
    * of HTML rendering. Never clear a newer/unobserved ref or metadata push. */
+  /** A push the index can never observe by commit: an annotated tag (indexed
+   *  peeled, pushed as the tag object), a hidden import ref, or a ref deleted
+   *  outside the push path. The advertisement read after the push settles it. */
+  protected settleAdvertised(pushed:Record<string,string>,advertised:{ref:string;oid:string}[]){
+    const settled=JSON.parse(this.index.setting('fragments:settled-refs')??'{}') as Record<string,string>
+    this.index.setting('fragments:settled-refs',JSON.stringify(settleAdvertisedRefs(pushed,advertised,settled)))
+  }
   protected acknowledgeIndexedRefs(){
     const raw=this.index.setting('fragments:pending-refs')??'{}'
     const pending=JSON.parse(raw) as Record<string,string>
+    const settled=JSON.parse(this.index.setting('fragments:settled-refs')??'{}') as Record<string,string>
     for(const [ref,sha] of Object.entries(pending)){
       const observed=ref==='_meta'?this.index.setting('meta'):this.index.resolve(ref)
-      if(observed===sha||/^0+$/.test(sha)&&!observed)delete pending[ref]
+      if(observed===sha||/^0+$/.test(sha)&&!observed||settled[ref]===sha)delete pending[ref]
     }
+    for(const ref of Object.keys(settled))if(!(ref in pending))delete settled[ref]
+    this.index.setting('fragments:settled-refs',JSON.stringify(settled))
     const next=JSON.stringify(pending)
     if(next!==raw)this.index.setting('fragments:pending-refs',next)
   }
@@ -1846,14 +1859,18 @@ export class RepoIndex extends DurableObject<Env> {
       // one smart HTTP advertisement gives branches, peeled tags and _meta.
       const { refsFromAdvertisement } = await import('../engine/repo-refs.js')
       const { internalPrefix } = await import('../engine/import/visibility.js')
+      // Pushes recorded before this advertisement was read.
+      const pushed = JSON.parse(this.index.setting('fragments:pending-refs') ?? '{}') as Record<string,string>
+      const advertisement = await git.listServerRefs({
+        http,
+        url,
+        ...(token ? { headers: { authorization: `Bearer ${token}` } } : {}),
+        symrefs: true,
+        peelTags: true,
+      })
+      this.settleAdvertised(pushed, advertisement)
       const refs = refsFromAdvertisement(
-        await git.listServerRefs({
-          http,
-          url,
-          ...(token ? { headers: { authorization: `Bearer ${token}` } } : {}),
-          symrefs: true,
-          peelTags: true,
-        }),
+        advertisement,
         await internalPrefix(this.env.DB,`${this.index.setting('owner')}/${this.index.setting('repo')}`),
       )
       refs.defaultBranch =

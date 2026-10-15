@@ -9,7 +9,7 @@ export interface Job {
   state:'queued'|'running'|'complete'|'mirroring'|'failed'|'cutover';
   progress:Progress; warnings:string[]; error:string|null;
   updated:number; next:number|null; cipher:string|null;
-  runner?:{owner:string;id:string;lease:string}; leaseHash:string|null; expires:number; checkpoint:string; busy:boolean;
+  runner?:{owner:string;id:string;lease:string}; leaseHash:string|null; expires:number; checkpoint:string; busy:boolean; local?:boolean;
 }
 export const hash=async(s:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),b=>b.toString(16).padStart(2,'0')).join('')
 export class ImportJob {
@@ -29,7 +29,7 @@ export class ImportJob {
   }
   async status() {
     const j=await this.read()
-    return {repository:j.repository,source:j.source,mirror:j.mirror,state:j.state,progress:j.progress,warnings:j.warnings,error:j.error,updated_at:new Date(j.updated).toISOString(),next_sync:j.next?new Date(j.next).toISOString():null,summary:j.summary}
+    return {repository:j.repository,source:j.source,mirror:j.mirror,state:j.state,progress:j.progress,warnings:j.warnings,error:j.error,updated_at:new Date(j.updated).toISOString(),next_sync:j.next?new Date(j.next).toISOString():null,summary:j.summary,...(j.local?{local:true}:{})}
   }
   async claim(runner?:Job["runner"]) {
     const j=await this.read()

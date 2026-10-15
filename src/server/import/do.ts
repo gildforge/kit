@@ -49,7 +49,7 @@ export class RepoImport extends DurableObject<{DB:D1Database;ACTIONS_SECRET_KEY?
   /** Keep this import off the container: it waits for the CLI or an owner runner. */
   async local(message:string) {
     await this.ctx.storage.put('dispatches',DISPATCHES)
-    await this.mutate(async()=>{const j=await this.ctx.storage.get<import('./job.js').Job>('job');if(j?.state==='queued')await this.ctx.storage.put('job',{...j,progress:{...j.progress,message}})})
+    await this.mutate(async()=>{const j=await this.ctx.storage.get<import('./job.js').Job>('job');if(j?.state==='queued')await this.ctx.storage.put('job',{...j,local:true,progress:{...j.progress,message}})})
   }
   cutover() {return this.mutate(()=>this.job.cutover())}
   async alarm() {

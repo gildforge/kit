@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { install } from '../../dist/install/index.js'
 
 // A Cloudflare account in memory, answering the API calls the installer makes.
-function account() {
+function account({ canMakeTokens = true } = {}) {
   const state = {
     subdomain: 'acme',
     databases: [] as { uuid: string; name: string; sql: string[]; ledger?: string[] }[],
@@ -71,6 +71,7 @@ function account() {
       return ok({})
     }
     if (path === '/tokens/permission_groups') return ok(['Artifacts Read', 'Artifacts Write', 'Queues Write', 'D1 Write'].map(name => ({ id: `pg-${name}`, name })))
+    if (path === '/tokens' && method === 'POST' && !canMakeTokens) return new Response(JSON.stringify({ success: false, errors: [{ code: 9109, message: 'Unauthorized to access requested resource' }] }), { status: 403 })
     if (path === '/tokens' && method === 'POST') { state.tokens.push({ name: body.name, permissions: body.policies[0].permission_groups.map((g: { id: string }) => g.id) }); return ok({ value: 'worker-token' }) }
     throw new Error(`unexpected ${method} ${path}`)
   }
@@ -156,4 +157,14 @@ test('a database of the same name that no install made is refused', async () => 
   cf.state.databases.push({ uuid: 'other', name: 'gild', sql: [] })
   await assert.rejects(install({ token: 't', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch }), /D1 database "gild"/)
   assert.equal(cf.state.scripts.length, 0)
+})
+
+test("a token that can't make the Worker its own token stops setup; the Worker never gets it", async () => {
+  const cf = account({ canMakeTokens: false })
+  await assert.rejects(
+    install({ token: 'user-token', accountId: 'acct', owner, template, fetch: cf.fetch as typeof fetch }),
+    /Account API Tokens: Edit/,
+  )
+  const uploaded = JSON.stringify(cf.state.scripts.map(s => s.metadata))
+  assert.equal(uploaded.includes('user-token'), false, 'the setup token is never a Worker secret')
 })

@@ -243,8 +243,8 @@ export async function install(options: InstallOptions): Promise<Installed> {
       { type: 'secret_text', name: 'ACTIONS_SECRET_KEY', text: base64(random(32)) },
       // Reads and writes this account's Artifacts and manages its event
       // subscriptions; it never leaves the account.
-      { type: 'secret_text', name: 'ARTIFACTS_TOKEN', text: worker ?? options.token },
-      { type: 'secret_text', name: 'EVENTS_TOKEN', text: worker ?? options.token },
+      { type: 'secret_text', name: 'ARTIFACTS_TOKEN', text: worker },
+      { type: 'secret_text', name: 'EVENTS_TOKEN', text: worker },
     )
   }
   const tags = manifest.migrations.map(m => m.tag)
@@ -312,22 +312,27 @@ export async function install(options: InstallOptions): Promise<Installed> {
 /** The permissions the Worker itself needs at run time. */
 export const WORKER_PERMISSIONS = ['Artifacts Read', 'Artifacts Write', 'Queues Write']
 
+/** The setup token can't make the Worker its own token: setup stops rather
+ *  than hand the Worker the person's token. */
+export const NARROW_TOKEN_REQUIRED =
+  "This API token can't create the narrower token gild gives your Worker. Add the permission 'Account API Tokens: Edit' to it and run setup again; gild never stores your own token in the Worker."
+
 /** A token for the Worker with only WORKER_PERMISSIONS, so the instance never
- *  holds the installer's key. Null when the key may not create tokens; the
- *  install then gives the Worker the key itself. */
-async function workerToken(cf: Cloudflare, accountId: string, name: string): Promise<string | null> {
+ *  holds the setup token. When the setup token may not create tokens, setup
+ *  stops with NARROW_TOKEN_REQUIRED. */
+async function workerToken(cf: Cloudflare, accountId: string, name: string): Promise<string> {
   const a = `/accounts/${accountId}`
   try {
     const groups = await cf.get<{ id: string; name: string }[]>(`${a}/tokens/permission_groups`)
     const ids = WORKER_PERMISSIONS.map(p => groups.find(g => g.name === p)?.id)
-    if (ids.some(id => !id)) return null
+    if (ids.some(id => !id)) throw new Error(NARROW_TOKEN_REQUIRED)
     const created = await cf.call<{ value: string }>(`${a}/tokens`, { method: 'POST', json: {
       name: `${name} worker`,
       policies: [{ effect: 'allow', resources: { [`com.cloudflare.api.account.${accountId}`]: '*' }, permission_groups: ids.map(id => ({ id })) }],
     } })
     return created.result.value
   } catch (error) {
-    if (error instanceof CloudflareError && (error.status === 403 || error.codes.includes(10000) || error.codes.includes(9109))) return null
+    if (error instanceof CloudflareError && (error.status === 403 || error.codes.includes(10000) || error.codes.includes(9109))) throw new Error(NARROW_TOKEN_REQUIRED)
     throw error
   }
 }

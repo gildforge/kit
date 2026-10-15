@@ -32,6 +32,12 @@ secrets. Each install records what it created and never adopts a database,
 bucket, queue or Worker it did not make. The code is in `src/install`, tested
 against an in-memory Cloudflare.
 
+## What a self-hosted gild leaves out
+
+- **The setup token stays with you.** Setup gives the Worker its own token, limited to Artifacts and Queues. If your token can't create tokens (it needs *Account API Tokens: Edit*), setup stops and says so; it never stores your token in the Worker.
+- **Importing from GitHub** runs in a Cloudflare Container on gild.gg. A self-hosted gild has no importer: push the repository to it, or run the import from the CLI.
+- **Code health for C, C++ and C#** needs gild.gg's heavier scorer. A self-hosted gild scores the other languages in full and marks these as partial.
+
 ## What is in it
 
 | import | what it holds |

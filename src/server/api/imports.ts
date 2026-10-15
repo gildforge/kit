@@ -97,13 +97,20 @@ export async function apiImports(c:Context):Promise<Result> {
     return {data:{ok:true}}
   }
   if(id==='importFinish') {
+    if(!b.error && b.default_branch) {const state=await st.settings.state(`${owner}/${repo}`);await st.settings.putState({...state,defaultBranch:b.default_branch})}
+    const finished=await job.finish(token,b.warnings,b.error,b.summary)
+    // The repository is all there: finishing its import refs and summary and
+    // re-indexing take tens of seconds, longer than an importer waits for an
+    // answer, so they run after it (a failure is logged; the data stays).
     if(!b.error) {
-      if(b.default_branch) {const state=await st.settings.state(`${owner}/${repo}`);await st.settings.putState({...state,defaultBranch:b.default_branch})}
-      const { finishImportRefs } = await import('../import/finish.js')
-      await finishImportRefs(owner,repo,active.internalPrefix??'import/pr',{url:active.source,mirror:active.mirror,readOnly:false,warnings:b.warnings,summary:b.summary})
-      await scheduleIndex(owner,repo)
+      const work=(async()=>{
+        const { finishImportRefs } = await import('../import/finish.js')
+        await finishImportRefs(owner,repo,active.internalPrefix??'import/pr',{url:active.source,mirror:active.mirror,readOnly:false,warnings:b.warnings,summary:b.summary})
+        await scheduleIndex(owner,repo)
+      })().catch(e=>console.error('Import finishing failed',owner,repo,e instanceof Error?e.message:e))
+      ;(await getCloudflareContext()).ctx.waitUntil(work)
     }
-    return {data:await job.finish(token,b.warnings,b.error,b.summary)}
+    return {data:finished}
   }
   void active
   throw new ApiError(404,'Not Found')

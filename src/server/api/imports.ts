@@ -39,6 +39,10 @@ export async function apiImports(c:Context):Promise<Result> {
     if(b.source_token && new URL(source.url).protocol==='http:') throw new ApiError(422,'Use HTTPS or SSH with a source token')
     // Validate encryption before provisioning anything. Plaintext never enters durable storage.
     if(b.source_token) await encrypt(env as {ACTIONS_SECRET_KEY?:string},`import:${owner}/${name}`,b.source_token)
+    // The same source already waiting for a local run (too large for the
+    // container): `gild repo import` picks that job up instead of failing.
+    const prior=await (async()=>{try {return await (await importJob(owner,name)).status()} catch {return null}})()
+    if(prior?.state==='queued' && prior.source===source.url) return {data:prior}
     const isPrivate=destinationPrivate(b)
     await createRepository(c.principal.name,owner,name,undefined,isPrivate,false)
     const job=await importJob(owner,name)

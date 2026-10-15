@@ -22,7 +22,7 @@ export async function sourceBytes(url:string,forge?:Forge,token?:string,fetcher:
   } catch {return null}
 }
 export function tooLargeMessage(bytes:number,repository:string) {
-  return `Too large to import on gild's servers (${(bytes/1024**3).toFixed(1)} GB). Import it from your machine: gild repo resume ${repository}`
+  return `Too large to import on gild's servers (${(bytes/1024**3).toFixed(1)} GB). Import it from your machine: gild clone ${repository}`
 }
 /** gild-import (services/import): runs a claimed import in a Container. */
 export interface Importer { start(server:string,job:NonNullable<Awaited<ReturnType<ImportJob['claim']>>>):Promise<{started:string}> }

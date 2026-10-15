@@ -12,7 +12,7 @@ test('a large GitHub source is measured from its API size in kilobytes', async (
   assert.ok(bytes!>SERVER_IMPORT_LIMIT)
   assert.equal(seen[0].url,'https://api.github.com/repos/torvalds/linux')
   assert.equal(seen[0].headers.authorization,'Bearer t0k')
-  assert.match(tooLargeMessage(bytes!,'sami/linux'),/4\.8 GB.*gild repo resume sami\/linux/)
+  assert.match(tooLargeMessage(bytes!,'sami/linux'),/4\.8 GB.*gild clone sami\/linux$/)
 })
 test('GitLab statistics are bytes; plain git and failures are unknown', async () => {
   assert.equal(await sourceBytes('https://gitlab.com/a/b',undefined,undefined,answer({statistics:{repository_size:42}})),42)

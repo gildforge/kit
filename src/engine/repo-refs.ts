@@ -20,3 +20,15 @@ export function sameTips(a: Refs, b: Refs) {
   ])
   return key(a) === key(b)
 }
+
+/** Pushed refs (short name → pushed oid) that an advertisement read after the
+ *  push accounts for: advertised with exactly that oid (an annotated tag's own
+ *  object, a hidden import ref) or no longer present (deleted). `_meta` is
+ *  settled only by the index. Returns `settled` with them added. */
+export function settleAdvertisedRefs(pushed: Record<string, string>, advertised: { ref: string; oid: string }[], settled: Record<string, string> = {}) {
+  const short = /^refs\/(heads|tags)\//
+  const oids = new Map(advertised.filter((r) => short.test(r.ref)).map((r) => [r.ref.replace(short, ''), r.oid]))
+  for (const [ref, sha] of Object.entries(pushed))
+    if (ref !== '_meta' && (oids.get(ref) === sha || !oids.has(ref))) settled[ref] = sha
+  return settled
+}

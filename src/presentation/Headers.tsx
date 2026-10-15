@@ -35,7 +35,7 @@ export function FooterView({ theme, Link = Anchor }: { theme: ReactNode; Link?: 
         <Link href="/download">download</Link>
         <a href="https://github.com/orgs/gildforge/repositories">github</a>
         <a href="/brand">brand</a>
-        <a href="https://github.com/sponsors/samifouad">donate</a>
+        <a href="https://github.com/sponsors/samifouad">tip jar</a>
         {theme}
       </span>
     </div>

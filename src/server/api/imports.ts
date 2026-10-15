@@ -2,7 +2,7 @@ import { getCloudflareContext } from '../context.js'
 import { destinationPrivate } from '../../engine/import/fence.js'
 import { sourceURL } from '../../engine/import/source.js'
 import { importJob } from '../import/service.js'
-import { startImport } from '../import/dispatch.js'
+import { startImport,sourceBytes,SERVER_IMPORT_LIMIT,tooLargeMessage } from '../import/dispatch.js'
 import { store } from '../backend.js'
 import { mayWrite } from '../access.js'
 import { ApiError } from '../../engine/api/errors.js'
@@ -22,6 +22,14 @@ export async function authorizeImport(c:Context) {
   if(c.principal.name.includes('/') || !(await mayWrite(owner,c.principal.name))) throw new ApiError(403,'Repository owner or organization admin required')
   if(c.principal.repos!==null && !c.params.repo) throw new ApiError(403,'Repository creation requires an unrestricted token')
 }
+/** False (and the job marked for the CLI) when the source is too large for
+ *  the import container. An unknown size goes to the container as before. */
+async function serverSized(job:Awaited<ReturnType<typeof importJob>>,repository:string,url:string,forge?:Parameters<typeof sourceBytes>[1],token?:string) {
+  const bytes=await sourceBytes(url,forge,token)
+  if(bytes===null||bytes<=SERVER_IMPORT_LIMIT) return true
+  await job.local(tooLargeMessage(bytes,repository))
+  return false
+}
 export async function apiImports(c:Context):Promise<Result> {
   const b=c.body,id=c.route.id,st=await store(),{env}=await getCloudflareContext(),token=c.request.headers.get('authorization')?.replace(/^Bearer /i,'')??''
   if(id==='importCreate'||id==='importOrgCreate') {
@@ -38,6 +46,7 @@ export async function apiImports(c:Context):Promise<Result> {
     // Straight from the source into Artifacts, server-side (services/import).
     // `x-gild-import-runner: local` keeps the job for the caller's own machine.
     if(c.request.headers.get('x-gild-import-runner')==='local') return {data:created}
+    if(!await serverSized(job,`${owner}/${name}`,source.url,source.forge,b.source_token)) return {data:await job.status()}
     return {data:await startImport(env as never,new URL(c.request.url).origin,()=>job.claim())?await job.status():created}
   }
   if(id==='importUserPoll'||id==='importOrgPoll') {
@@ -65,7 +74,9 @@ export async function apiImports(c:Context):Promise<Result> {
   const {owner,repo}=c.params,job=await importJob(owner,repo)
   if(id==='importStatus') return {data:await job.status()}
   if(id==='importClaim') return {data:await job.claim()}
-  if(id==='importRetry') {const queued=await job.retry(b.source_token);return {data:await startImport(env as never,new URL(c.request.url).origin,()=>job.claim())?await job.status():queued}}
+  if(id==='importRetry') {const queued=await job.retry(b.source_token)
+    if(!await serverSized(job,`${owner}/${repo}`,queued.source,undefined,b.source_token)) return {data:await job.status()}
+    return {data:await startImport(env as never,new URL(c.request.url).origin,()=>job.claim())?await job.status():queued}}
   if(id==='importCutover') {
     const result=await job.cutover()
     const {writeMeta,writeJson,DIR}=await import('../metastore.js')
@@ -103,6 +114,9 @@ export async function apiImports(c:Context):Promise<Result> {
     // re-indexing take tens of seconds, longer than an importer waits for an
     // answer, so they run after it (a failure is logged; the data stays).
     if(!b.error) {
+      // Wake the index first: it is durable (a Durable Object alarm), while the
+      // waitUntil below may be cut off after ~30s and never reach its wake.
+      await scheduleIndex(owner,repo)
       const work=(async()=>{
         const { finishImportRefs } = await import('../import/finish.js')
         await finishImportRefs(owner,repo,active.internalPrefix??'import/pr',{url:active.source,mirror:active.mirror,readOnly:false,warnings:b.warnings,summary:b.summary})

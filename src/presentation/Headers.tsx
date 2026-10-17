@@ -23,8 +23,8 @@ export function FooterView({ theme, Link = Anchor }: { theme: ReactNode; Link?: 
   return <footer style={{ borderTop: '1px solid var(--rule)', padding: '22px 16px 34px' }}>
     <div className="site-footer-grid">
       <span style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'start' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- a 22px static avatar */}
-        <img src="/addis-circle.svg" alt="" width={22} height={22} style={{ borderRadius: '50%' }} />
+        {/* eslint-disable-next-line @next/next/no-img-element -- a 32px static avatar */}
+        <img src="/addis-circle.svg" alt="" width={32} height={32} style={{ borderRadius: '50%' }} />
         <span>© {new Date().getUTCFullYear()} <a href="https://addis.gg" style={{ color: 'var(--ink)' }}>Addis Corp</a></span>
       </span>
       <Link href="/" className="site-logo" aria-label="gild home" style={{ justifySelf: 'center', color: 'var(--ink)' }}>
